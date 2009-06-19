@@ -4,25 +4,15 @@
 @Polar_Surface_Plot
 
 PRO RUN_PROGRAM
-  ;Normal FOR loop
-  ;FOR i=1, 2027 DO PolarPlotData, i
-  
+  ; Get the sky data from the text files into a usable form
   GET_SKY_DATA, 268, azimuths=azimuths, zeniths=zeniths, dns=dns
+  
+  ; --- Visualisation routines are below: uncomment the appropriate one ---
   
   ;Polar_Plot_Data, azimuths, zeniths, dns
   
   MAP_PLOT_DATA, azimuths, zeniths, dns
   
   ;POLAR_SURFACE_PLOT, azimuths, zeniths, dns
-  
-  
-  ;xinteranimate, set=[1000, 1000, 2027], /showload
-  
-  ;for i=1, 50 DO BEGIN
-    ;PolarPlotData, i
-    ;xinteranimate, frame=i, win=0
-  ;endfor
-  
-  ;xinteranimate
-    
+      
 END
