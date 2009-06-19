@@ -1,4 +1,16 @@
-FUNCTION GET_SKY_DATA
+FUNCTION READ_NUMBERED_LINE, filename, line_num
+  openr, lun, filename, /GET_LUN
+  
+  FOR i=0, line_num DO BEGIN
+    readf, lun, line, format="(a)"
+  ENDFOR
+  
+  FREE_LUN, lun
+  
+  return, line
+END
+
+PRO GET_SKY_DATA, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH("D:\UserData\Robin Wilson\AlteredData\ncaveo\16-June\scan1_high", "angles.txt")
   
