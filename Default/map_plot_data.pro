@@ -2,7 +2,8 @@ PRO MAP_PLOT_DATA, azimuths, zeniths, dns
   loadct, 0
   
   ; Set the map projection to orthographic, looking down from the north pole
-  MAP_SET, /ORTHOGRAPHIC, 90, 0, /GRID, /ISOTROPIC, title="Sky Spectra Test"
+  ; The REVERSE=1 and the third numeric parameter (180) ensure that N, E, S and W are at the appropriate locations
+  MAP_SET, /ORTHOGRAPHIC, 90, 0, 180, REVERSE=1, /GRID, /ISOTROPIC, title="Sky Spectra Test"
   
   ; Calculate 100 levels for the contouring
   range = MAX(dns) - MIN(dns)
@@ -27,5 +28,5 @@ PRO MAP_PLOT_DATA, azimuths, zeniths, dns
   ;plots, azimuths, zeniths, psym=1, color=0
   
   ; Plot points at certain locations for testing purposes
-  ;plots, [90], [10], psym=1, color=0  
+  ;plots, [0], [10], psym=1, color=0  
 END
