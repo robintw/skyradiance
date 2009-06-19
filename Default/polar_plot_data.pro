@@ -23,7 +23,7 @@ PRO Polar_Plot_Data, azimuths, zeniths, dns
  
  
   ; UNCOMMENT THIS FOR SURFACE PLOT
-  ;SURFACE, POLAR_SURFACE(dns, zeniths, azimuths)
+  SURFACE, POLAR_SURFACE(dns, zeniths, azimuths)
 
 
   ;ncolors = N_ELEMENTS(levels) + 1
@@ -34,16 +34,16 @@ PRO Polar_Plot_Data, azimuths, zeniths, dns
   ;device, decomposed=0
   ;loadct, 0
   
-  axis, 0, 0, XAX=0, xrange=[-90, 90], xstyle=1, xticks=9, /save
-  axis, 0, 0, YAX=0, yrange=[-90, 90], ystyle=1, yticks=9, /save
+  ;axis, 0, 0, XAX=0, xrange=[-90, 90], xstyle=1, xticks=9, /save
+  ;axis, 0, 0, YAX=0, yrange=[-90, 90], ystyle=1, yticks=9, /save
   
-  POLAR_CONTOUR, reverse(dns), azimuths, zeniths, $
-    levels=levels, c_labels=c_labels, $
-    ystyle=4, xstyle=4, $
-    /IRREGULAR, /FILL, /ISOTROPIC, /OVERPLOT
+  ;POLAR_CONTOUR, reverse(dns), azimuths, zeniths, $
+    ;levels=levels, c_labels=c_labels, $
+    ;ystyle=4, xstyle=4, $
+    ;/IRREGULAR, /FILL, /ISOTROPIC, /OVERPLOT
   
-  axis, 0, 0, XAX=0, xrange=[-90, 90], xstyle=1, xticks=9
-  axis, 0, 0, YAX=0, yrange=[-90, 90], ystyle=1, yticks=9
+  ;axis, 0, 0, XAX=0, xrange=[-90, 90], xstyle=1, xticks=9
+  ;axis, 0, 0, YAX=0, yrange=[-90, 90], ystyle=1, yticks=9
   
   
   ; Will plot all the points (no z values) on a polar plot

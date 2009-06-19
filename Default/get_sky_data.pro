@@ -64,4 +64,5 @@ PRO GET_SKY_DATA, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
       j = j + 1
     ENDWHILE
   ENDFOR
+  close, /all
 END
