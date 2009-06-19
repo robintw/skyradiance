@@ -1,5 +1,6 @@
-@PolarPlotData
+@Polar_Plot_Data
 @Get_Sky_Data
+@Map_Plot_Data
 
 PRO RUN_PROGRAM
   ;Normal FOR loop
@@ -7,7 +8,10 @@ PRO RUN_PROGRAM
   
   GET_SKY_DATA, 216, azimuths=azimuths, zeniths=zeniths, dns=dns
   
-  PolarPlotData, azimuths, zeniths, dns
+  Polar_Plot_Data, azimuths, zeniths, dns
+  
+  ;MAP_PLOT_DATA, azimuths, zeniths, dns
+  
   
   ;xinteranimate, set=[1000, 1000, 2027], /showload
   
