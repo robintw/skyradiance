@@ -99,7 +99,7 @@ SURFACE, POLAR_SURFACE(dns, zeniths, azimuths)
 ;loadct, 33, ncolors=ncolors, bottom=bottom 
 
 ;device, decomposed=0
-loadct, 0
+;loadct, 0
 
 ;axis, 0, 0, XAX=0, xrange=[-90, 90], xstyle=1, xticks=9, /save
 ;axis, 0, 0, YAX=0, yrange=[-90, 90], ystyle=1, yticks=9, /save
@@ -112,45 +112,9 @@ loadct, 0
 ;axis, 0, 0, XAX=0, xrange=[-90, 90], xstyle=1, xticks=9
 ;axis, 0, 0, YAX=0, yrange=[-90, 90], ystyle=1, yticks=9
 
-;POLAR_CONTOUR, reverse(dns), /IRREGULAR, /fill, azimuths, zeniths, levels=levels, c_labels=c_labels, nlevels=10, xstyle=4, ystyle=4
-;POLAR_CONTOUR, reverse(dns), /IRREGULAR, /overplot, azimuths, zeniths, levels=levels, c_labels=c_labels, nlevels=10, xstyle=4, ystyle=4
 
-
+; Will plot all the points (no z values) on a polar plot
 ;plot, zeniths, azimuths, /polar, PSYM=1, /ISOTROPIC, xstyle=4, ystyle=4
-
-
-;oplot, [10], [120*!dtor], /polar, PSYM=4
-;
-;maxrec = 2050
-;
-;openr, lun, "D:\UserData\Robin Wilson\AlteredData\ncaveo\16-June\scan1_high\OLDDNandZenith.txt", /GET_LUN
-;
-;record = {azimuth:0L, dn:0.0, zenith:0.0}
-;
-;data = replicate(record, maxrec)
-;
-;nrecords = 0L
-;
-;while (eof(lun) ne 1) do begin
-;  readf, lun, record, format="(i3, f7.3, f4.1)"
-;  
-;  print, record.azimuth
-;  
-;  data[nrecords] = record
-;  nrecords = nrecords + 1L
-;;endwhile
-;
-;; Create a vector of radii:  
-;r = data.zenith
-;  
-;; Create a vector of Thetas:  
-;theta = data.azimuth
-;  
-;; Create some data values to be contoured:  
-;z = data.dn
-;
-;; Create the polar contour plot:  
-;POLAR_CONTOUR, z, theta, r, xrange=[-10, 10], xstyle=1, yrange=[-10,10], ystyle=1, NLEVELS=20
 
 close, /all
 

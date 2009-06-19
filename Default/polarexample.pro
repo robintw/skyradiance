@@ -1,3 +1,5 @@
+
+
 PRO PolarExample
 
 ;Handle TrueColor displays: 
