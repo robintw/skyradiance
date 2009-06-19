@@ -1,5 +1,7 @@
-PRO ANIMATE_SKY_DATA
-  FOR i=1, 2027 DO PolarPlotData, i
+@Polar_Plot_Data
+
+PRO ANIMATE_SKY_DATA, azimuths, zeniths, dns
+  FOR i=1, 2027 DO Polar_Surface_Plot, azimuths, zeniths, dns
   
   
   ; --- Old xinteranimate code, doesn't work with large numbers of images ---
