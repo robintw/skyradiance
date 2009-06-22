@@ -3,12 +3,23 @@
 @Map_Plot_Data
 @Polar_Surface_Plot
 
+PRO SET_BROWSED_TEXT, infoptr
+  info = *infoptr
 
-PRO VISUALISE_DATA, list_index, MAP=MAP, POLAR=POLAR, SURFACE=SURFACE
+  directory = dialog_pickfile(/DIRECTORY)
+  widget_control, info.text_dirname, set_value=directory
+   
+  info.dirname = directory
+  
+  *infoptr = info
+END
+
+
+PRO VISUALISE_DATA, dirname, list_index, MAP=MAP, POLAR=POLAR, SURFACE=SURFACE
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
   line_number = line_nums_array[list_index]
   print, line_number
-  GET_SKY_DATA, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
+  GET_SKY_DATA, dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
 
   IF keyword_set(map) THEN BEGIN
     MAP_PLOT_DATA, azimuths, zeniths, dns
@@ -31,26 +42,32 @@ PRO SKY_RADIANCE_GUI_EVENT, EVENT
   
   if (STRPOS(widget, "List") ne -1) THEN BEGIN
     info.list_index = event.index
+    *infoptr = info
     print, info.list_index
   endif
   
   if (STRPOS(widget, "Button") ne -1) THEN BEGIN   
-    info.type = widget
-    
-    help, info.list_index
     
     CASE widget OF
-      "MapButton": Visualise_Data, info.list_index, /MAP
-      "PolarButton": Visualise_Data, info.list_index, /POLAR
-      "SurfaceButton": Visualise_Data, info.list_index, /SURFACE
+      "MapButton": Visualise_Data, info.dirname, info.list_index, /MAP
+      "PolarButton": Visualise_Data, info.dirname, info.list_index, /POLAR
+      "SurfaceButton": Visualise_Data, info.dirname, info.list_index, /SURFACE
+      "BrowseButton": Set_Browsed_Text, infoptr
     ENDCASE
   ENDIF
   
-  *infoptr = info
+  print, info.text_dirname
+  
+  
 END
 
 PRO SKY_RADIANCE_GUI
   base = widget_base(row=2)
+  
+  filename_base = widget_base(base, col=2)  
+  text_dirname = widget_text(filename_base, uvalue="FilenameText")
+  button_browse = widget_button(filename_base, value="Browse", uvalue="BrowseButton")
+  
   
   ;text_line = widget_text(base, /editable, uvalue="TextBox")
   wavelength_list = string([340, 380, 440, 500, 675, 870, 939, 1020])
@@ -61,7 +78,7 @@ PRO SKY_RADIANCE_GUI
   button_polar = widget_button(button_base, value="Show Polar Plot", uvalue="PolarButton")
   button_surface = widget_button(button_base, value="Show Surface Plot", uvalue="SurfaceButton")
   
-  info = {list:list, type:'', wavelength:'', list_index:''}
+  info = {dirname:'', text_dirname:text_dirname, list:list, type:'', wavelength:'', list_index:''}
   print, "ListIndex = ", info.list_index
   infoptr = ptr_new(info)
   

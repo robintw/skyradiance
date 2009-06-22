@@ -14,9 +14,11 @@ END
 
 ; Gets the data from the Sky Radiance Mapper (SKRAM) files. At the moment, paths are hardcoded to the
 ; paths used on the ncaveo PC at the University of Southampton
-PRO GET_SKY_DATA, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
+PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
   ; Get a list of all the angle.txt files under the specified directory
-  angle_files = FILE_SEARCH("D:\UserData\Robin Wilson\AlteredData\ncaveo\16-June\scan1_high", "angles.txt")
+  angle_files = FILE_SEARCH(dir_path, "angles.txt")
+  
+  print, dir_path
   
   line = ""
   
