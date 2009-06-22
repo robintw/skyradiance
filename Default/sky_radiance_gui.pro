@@ -62,10 +62,11 @@ PRO SKY_RADIANCE_GUI_EVENT, EVENT
 END
 
 PRO SKY_RADIANCE_GUI
-  base = widget_base(row=2)
+  base = widget_base(row=3)
   
-  filename_base = widget_base(base, col=2)  
-  text_dirname = widget_text(filename_base, uvalue="FilenameText")
+  filename_base = widget_base(base, col=3)
+  label_dirname = widget_label(filename_base, value="Directory:")
+  text_dirname = widget_text(filename_base, uvalue="FilenameText", xsize=100)
   button_browse = widget_button(filename_base, value="Browse", uvalue="BrowseButton")
   
   

@@ -33,5 +33,5 @@ PRO MAP_PLOT_DATA, azimuths, zeniths, dns
   ; Plot points at certain locations for testing purposes
   ;plots, [0], [10], psym=1, color=0  
   
-  colorbar, /vertical, /right, range=[min(dns), max(dns)], position=cbar_position
+  colorbar, /vertical, /right, range=[min(dns), max(dns)], position=cbar_position, title="Digital Number"
 END
