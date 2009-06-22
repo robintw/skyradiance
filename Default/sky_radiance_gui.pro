@@ -62,6 +62,8 @@ PRO SKY_RADIANCE_GUI_EVENT, EVENT
 END
 
 PRO SKY_RADIANCE_GUI
+  loadct, 13
+  
   base = widget_base(row=3)
   
   filename_base = widget_base(base, col=3)
