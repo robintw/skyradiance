@@ -9,6 +9,9 @@ PRO MAP_PLOT_DATA, azimuths, zeniths, dns
   MAP_SET, /ORTHOGRAPHIC, 90, 0, 180, REVERSE=1, /ISOTROPIC, title="Sky Spectra Test", position=draw_position
   
   device, decomposed=0
+  loadct, 13
+  TVLCT, 0, 0, 0, !D.TABLE_SIZE-1         ; Drawing colour
+  TVLCT, 255, 255, 255, 0                 ; Background colour
   
   ; Calculate 100 levels for the contouring
   range = MAX(dns) - MIN(dns)

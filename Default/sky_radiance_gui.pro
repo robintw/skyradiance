@@ -71,10 +71,10 @@ PRO SKY_RADIANCE_GUI
   text_dirname = widget_text(filename_base, uvalue="FilenameText", xsize=100)
   button_browse = widget_button(filename_base, value="Browse", uvalue="BrowseButton")
   
-  
-  ;text_line = widget_text(base, /editable, uvalue="TextBox")
+  wavelengths_base = widget_base(base, col=2)
+  label_wavelengths = widget_label(wavelengths_base, value="Wavelength:")
   wavelength_list = string([340, 380, 440, 500, 675, 870, 939, 1020])
-  list = widget_list(base, value=wavelength_list, ysize=8, uvalue="List")
+  list = widget_list(wavelengths_base, value=wavelength_list, ysize=8, uvalue="List")
   
   button_base = widget_base(base, row=1)
   button_map = widget_button(button_base, value="Show Map Plot", uvalue="MapButton")

@@ -9,9 +9,9 @@ PRO RUN_PROGRAM
   
   ; --- Visualisation routines are below: uncomment the appropriate one ---
   
-  Polar_Plot_Data, azimuths, zeniths, dns
+  ;Polar_Plot_Data, azimuths, zeniths, dns
   
-  ;MAP_PLOT_DATA, azimuths, zeniths, dns
+  MAP_PLOT_DATA, azimuths, zeniths, dns
   
   ;POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   
