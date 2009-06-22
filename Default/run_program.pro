@@ -11,10 +11,10 @@ PRO RUN_PROGRAM
   
   ;Polar_Plot_Data, azimuths, zeniths, dns
   
-  ;MAP_PLOT_DATA, azimuths, zeniths, dns
+  MAP_PLOT_DATA, azimuths, zeniths, dns
   
   ;POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   
-  ANIMATE_SKY_DATA, azimuths, zeniths, dns
+  ;ANIMATE_SKY_DATA, azimuths, zeniths, dns
       
 END

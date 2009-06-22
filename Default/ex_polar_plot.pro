@@ -130,8 +130,8 @@ pro ex_polar_plot
 
  map_grid, /grid, londel=45, latdel=15, color=0, /t3d
 
- ;colorbar, position=cbar_position, division=10, /vertical, /right, title='Norm [/sr]', $
-   ;bottom=1b, ncolors=levels-1, range=zrange, format='(F3.1)'
+ colorbar, position=cbar_position, division=10, /vertical, /right, title='Norm [/sr]', $
+    bottom=1b, ncolors=levels-1, range=zrange, format='(F3.1)'
 
  ; Set color decomposition back to default.
 
