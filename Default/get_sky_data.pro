@@ -35,7 +35,7 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
     
     ; Store the azimuth from the folder name
     folders_string = FILE_DIRNAME(angle_files[i])
-    azimuth = FILE_BASENAME(folders_string)
+    azimuth = uint(FILE_BASENAME(folders_string))
     
     ; Initialise the j loop variable, which is incremented for every line read from the file
     j = 0
@@ -46,8 +46,15 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       readf, lun, line, format="(a)"
       splitted = STRSPLIT(line, ";", /EXTRACT)
       
+      ;print, FILE_BASENAME(angle_files[i])
+      
+      spectrum_filename = FILE_DIRNAME(angle_files[i]) + "\" + splitted[0]
+ 
+      print, spectrum_filename
+      
+      
       ; Get's a string of the entire line of the filename at the line number given in angles.txt
-      line_string = READ_NUMBERED_LINE(splitted[0], line_number)
+      line_string = READ_NUMBERED_LINE(spectrum_filename, line_number)
       
       ; Read the value in from that string into the float variable dn
       reads, line_string, dn, format="(f)"
