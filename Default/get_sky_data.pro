@@ -14,7 +14,7 @@ END
 
 ; Gets the data from the Sky Radiance Mapper (SKRAM) files. At the moment, paths are hardcoded to the
 ; paths used on the ncaveo PC at the University of Southampton
-PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
+PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
   
@@ -35,7 +35,9 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
     
     ; Store the azimuth from the folder name
     folders_string = FILE_DIRNAME(angle_files[i])
-    azimuth = uint(FILE_BASENAME(folders_string))
+    azimuth = FILE_BASENAME(folders_string)
+    
+    if STREGEX(azimuth, "[1234567890]{3}", /BOOLEAN) eq 0 THEN GOTO, end_of_loop
     
     ; Initialise the j loop variable, which is incremented for every line read from the file
     j = 0
@@ -49,9 +51,8 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ;print, FILE_BASENAME(angle_files[i])
       
       spectrum_filename = FILE_DIRNAME(angle_files[i]) + "\" + splitted[0]
- 
-      print, spectrum_filename
       
+      datetime = splitted[1]
       
       ; Get's a string of the entire line of the filename at the line number given in angles.txt
       line_string = READ_NUMBERED_LINE(spectrum_filename, line_number)
@@ -65,10 +66,10 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ; Calculate the azimuth given that the zenith scanning goes all the way from 0 to 180 degrees    
       zenith = FLOAT(splitted[2])
       IF zenith GT 90 THEN BEGIN
-        real_azimuth = azimuth + 180
+        real_azimuth = uint(azimuth) + 180
         real_zenith = zenith - 90
       ENDIF ELSE BEGIN
-        real_azimuth = azimuth
+        real_azimuth = uint(azimuth)
         real_zenith = zenith
       ENDELSE
       
@@ -79,6 +80,8 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       
       j = j + 1
     ENDWHILE
+    
+    end_of_loop:
     FREE_LUN, lun
   ENDFOR
   
