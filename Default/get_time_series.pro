@@ -1,12 +1,16 @@
-@GET_SKY_DATA
+FUNCTION CALCULATE_VALUE, dns, azimuths, zeniths
+  return_value = MAX(dns) - MIN(dns)
+  return, return_value
+END
 
-PRO GET_TIME_SERIES
+
+PRO GET_TIME_SERIES, datetimes=datetimes, values=values
   line_number = 268
 
   dirs = FILE_SEARCH("D:\UserData\Robin Wilson\AlteredData\ncaveo\16-June", "scan*_high", /TEST_DIRECTORY)
 
-  datetimes = strarr(N_ELEMENTS(dirs))
-  values = fltarr(N_ELEMENTS(dirs))
+  calculated_datetimes = strarr(N_ELEMENTS(dirs))
+  calculated_values = fltarr(N_ELEMENTS(dirs))
   
   ; For every directory returned
   FOR i=0, N_ELEMENTS(dirs)-1 DO BEGIN
@@ -17,23 +21,29 @@ PRO GET_TIME_SERIES
     IF scan_num MOD 2 eq 1 THEN BEGIN
       GET_SKY_DATA, dirs[i], line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime
       
-      datetimes[i] = datetime
+      MAP_PLOT_DATA, azimuths, zeniths, dns
+      
+      calculated_datetimes[i] = datetime
       
       ; HERE IS WHERE THE VALUE IS SET - CHANGE AS NEEDED
-      values[i] = MAX(dns) - MIN(dns)
+      calculated_values[i] = CALCULATE_VALUE(dns, azimuths, zeniths)
     ENDIF
   ENDFOR
   
-  nonzero_indices = WHERE(values)
+  nonzero_indices = WHERE(calculated_values)
   
-  new_datetimes = datetimes[nonzero_indices]
-  new_values = values[nonzero_indices]
+  new_datetimes = calculated_datetimes[nonzero_indices]
+  new_values = calculated_values[nonzero_indices]
   
   julian_datetimes = dblarr(N_ELEMENTS(new_datetimes))
     
   reads, new_datetimes, julian_datetimes, format='(C(CDI2, 1X, CMOI2, 1X, CYI4, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
-   
-  date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
   
-  plot, julian_datetimes, new_values, psym=1, xtickformat='LABEL_DATE'
+  datetimes = julian_datetimes
+  values = new_values
 END
+  
+  ;date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
+  
+  ;plot, julian_datetimes, new_values, psym=1, xtickformat='LABEL_DATE'
+  

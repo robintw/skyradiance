@@ -17,5 +17,18 @@ PRO GET_SUNSHINE_DATA
   
   ratio = data.global / float(data.diffuse)
   
-  plot, times, ratio
+  date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
+  
+  ;plot, times, ratio, /nodata, ystyle=4, xtickformat='LABEL_DATE'
+  
+  ;axis, yaxis=0, yrange=[0, 5], /save
+  
+  ;oplot, times, ratio
+  
+  ;GET_TIME_SERIES, datetimes=datetimes, values=values
+ 
+  ;print, datetimes
+ 
+  ;axis, yaxis=1, yrange=[3000,5000], /save
+  ;oplot, datetimes, values, psym=1
 END
