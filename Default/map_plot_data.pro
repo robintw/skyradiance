@@ -1,12 +1,12 @@
 @COLORBAR
 
-PRO MAP_PLOT_DATA, azimuths, zeniths, dns
+PRO MAP_PLOT_DATA, azimuths, zeniths, dns, title
   draw_position = [.10, .07, .80, .90]
   cbar_position = [.85, .07, .88, .90]
   
   ; Set the map projection to orthographic, looking down from the north pole
   ; The REVERSE=1 and the third numeric parameter (180) ensure that N, E, S and W are at the appropriate locations
-  MAP_SET, /ORTHOGRAPHIC, 90, 0, 180, REVERSE=1, /ISOTROPIC, title="Sky Spectra Test", position=draw_position, color=1
+  MAP_SET, /ORTHOGRAPHIC, 90, 0, 180, REVERSE=1, /ISOTROPIC, title=title, position=draw_position, color=1
   
   device, decomposed=0
   loadct, 13

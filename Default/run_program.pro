@@ -11,7 +11,7 @@ PRO RUN_PROGRAM
   
   ;Polar_Plot_Data, azimuths, zeniths, dns
   
-  MAP_PLOT_DATA, azimuths, zeniths, dns
+  MAP_PLOT_DATA, azimuths, zeniths, dns, "Sky Radiance Distribution: scan3_high, 440nm"
   
   ;POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   

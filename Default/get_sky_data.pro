@@ -14,7 +14,7 @@ END
 
 ; Gets the data from the Sky Radiance Mapper (SKRAM) files. At the moment, paths are hardcoded to the
 ; paths used on the ncaveo PC at the University of Southampton
-PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime
+PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime, normalise=normalise
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
   
@@ -84,6 +84,18 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
     end_of_loop:
     FREE_LUN, lun
   ENDFOR
+  
+  
+  IF KEYWORD_SET(normalise) THEN BEGIN
+    ; Normalise data
+    centre_indexes = WHERE(zeniths EQ 90)
+    
+    average_centre = MEAN(dns[centre_indexes])
+    
+    print, average_centre
+    
+    dns = float(dns) / average_centre
+  ENDIF
   
   ; Close all files
   close, /all
