@@ -75,7 +75,8 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ; Reverse zenith's to get it to plot correctly
       real_zenith = 90 - real_zenith
       
-      
+       ; Corrects the data as the instrument was aligned S-N rather than N-S. TODO: Check with Ted!
+      IF real_azimuth LT 180 THEN real_azimuth = real_azimuth + 180 ELSE real_azimuth = real_azimuth - 180
      
       
       ; Insert the values into the arrays
