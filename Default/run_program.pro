@@ -16,5 +16,21 @@ PRO RUN_PROGRAM
   ;POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   
   ;ANIMATE_SKY_DATA, azimuths, zeniths, dns
-      
+  
+  values = fltarr(12)
+  
+  i=0
+  
+  for angle=0, 330, 30 DO BEGIN
+    indexes = WHERE(azimuths eq angle)
+    value = max(dns[indexes])
+    values[i] = value
+    i++
+  ENDFOR
+  
+  print, values
+  help, values
+  print, max(values)
+  
+  
 END

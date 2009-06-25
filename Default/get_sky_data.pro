@@ -18,8 +18,6 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
   
-  print, dir_path
-  
   line = ""
   
   ; Set up blank arrays ready for data to be inserted
@@ -77,6 +75,9 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ; Reverse zenith's to get it to plot correctly
       real_zenith = 90 - real_zenith
       
+      
+     
+      
       ; Insert the values into the arrays
       azimuths[array_index] = real_azimuth
       dns[array_index] = dn
@@ -96,7 +97,6 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
     
     average_centre = MEAN(dns[centre_indexes])
     
-    print, average_centre
     
     dns = float(dns) / average_centre
   ENDIF
