@@ -63,8 +63,9 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ; Calculate which index in the array to put it in
       array_index = (11*i) + j
       
-      ; Calculate the azimuth given that the zenith scanning goes all the way from 0 to 180 degrees    
       zenith = FLOAT(splitted[2])
+      
+      ; Calculate the azimuth given that the zenith scanning goes all the way from 0 to 180 degrees    
       IF zenith GT 90 THEN BEGIN
         real_azimuth = uint(azimuth) + 180
         real_zenith = zenith - 90
@@ -72,6 +73,9 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
         real_azimuth = uint(azimuth)
         real_zenith = zenith
       ENDELSE
+      
+      ; Reverse zenith's to get it to plot correctly
+      real_zenith = 90 - real_zenith
       
       ; Insert the values into the arrays
       azimuths[array_index] = real_azimuth
