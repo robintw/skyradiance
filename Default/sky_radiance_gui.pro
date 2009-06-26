@@ -16,7 +16,6 @@ END
 
 
 PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, POLAR=POLAR, SURFACE=SURFACE
-  print, "Normalise is " + string(normalise)
 
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
   line_number = line_nums_array[list_index]
@@ -28,8 +27,6 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, POLAR=POL
 
   IF keyword_set(map) THEN BEGIN
     MAP_PLOT_DATA, azimuths, zeniths, dns, "Sky Radiance Distribution: " + FILE_BASENAME(dirname) + wavelengths_array[list_index] + "nm"
-  ENDIF ELSE IF keyword_set(polar) THEN BEGIN
-    Polar_Plot_Data, azimuths, zeniths, dns
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
@@ -59,7 +56,6 @@ PRO SKY_RADIANCE_GUI_EVENT, EVENT
   ENDIF ELSE IF (STRPOS(widget, "Button") ne -1) THEN BEGIN   
     CASE widget OF
       "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP
-      "PolarButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise ,/POLAR
       "SurfaceButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /SURFACE
       "BrowseButton": Set_Browsed_Text, infoptr
     ENDCASE
@@ -73,11 +69,11 @@ END
 PRO SKY_RADIANCE_GUI
   loadct, 13
   
-  base = widget_base(row=3)
+  base = widget_base(row=4, title="Sky Radiance Mapper Visualisation")
   
   filename_base = widget_base(base, col=3)
   label_dirname = widget_label(filename_base, value="Directory:")
-  text_dirname = widget_text(filename_base, uvalue="FilenameText", xsize=100)
+  text_dirname = widget_text(filename_base, uvalue="FilenameText", xsize=75)
   button_browse = widget_button(filename_base, value="Browse", uvalue="BrowseButton")
   
   parameters_base = widget_base(base, col=3)
@@ -89,9 +85,11 @@ PRO SKY_RADIANCE_GUI
   checkbox_normalise = widget_button(checkbox_base, value="Normalise", uvalue="NormaliseCheckbox")
   
   button_base = widget_base(base, row=1)
-  button_map = widget_button(button_base, value="Show Map Plot", uvalue="MapButton")
-  button_polar = widget_button(button_base, value="Show Polar Plot", uvalue="PolarButton")
+  button_map = widget_button(button_base, value="Show Contour Plot", uvalue="MapButton")
   button_surface = widget_button(button_base, value="Show Surface Plot", uvalue="SurfaceButton")
+  
+  copyright_base = widget_base(base, row=1)
+  label_copyright = widget_label(copyright_base, value="Created by Robin Wilson, University of Southampton, 2009")
   
   ; Set up info structure
   info = {normalise:0, dirname:'', text_dirname:text_dirname, list:list, type:'', wavelength:'', list_index:''}
