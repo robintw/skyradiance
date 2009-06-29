@@ -12,8 +12,9 @@ FUNCTION READ_NUMBERED_LINE, filename, line_num
   return, line
 END
 
-; Gets the data from the Sky Radiance Mapper (SKRAM) files. At the moment, paths are hardcoded to the
-; paths used on the ncaveo PC at the University of Southampton
+; Gets the data from the Sky Radiance Mapper (SKRAM) files given a directory path (a scanx_high
+; or scanx_low directory) and a line_number (to select wavelength). Returns arrays of azimuths, zeniths,
+; dns, as well as a timestamp for the scan.
 PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime, normalise=normalise
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
@@ -95,10 +96,7 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   IF KEYWORD_SET(normalise) THEN BEGIN
     ; Normalise data
     centre_indexes = WHERE(zeniths EQ 90)
-    
-    average_centre = MEAN(dns[centre_indexes])
-    
-    
+    average_centre = MEAN(dns[centre_indexes])    
     dns = float(dns) / average_centre
   ENDIF
   

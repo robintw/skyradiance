@@ -3,6 +3,8 @@
 @Map_Plot_Data
 @Polar_Surface_Plot
 
+; Called when the 'Browse' button is clicked and displays a directory selection dialog
+; box, storing the result in the textbox and in the info structure.
 PRO SET_BROWSED_TEXT, infoptr
   info = *infoptr
 
@@ -14,8 +16,10 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
-
-PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, POLAR=POLAR, SURFACE=SURFACE
+; Handler routine called by Sky_Radiance_GUI_Event. Takes a directory name, and a list index
+; to select the wavelength used. Takes keywords to decide what type of plot to display
+; and whether to normalise the data or not.
+PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE
 
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
   line_number = line_nums_array[list_index]
@@ -32,6 +36,12 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, POLAR=POL
   ENDIF
 END
 
+
+; Event handler for Sky_Radiance_GUI.
+; Starts by getting the info structure out of the pointer, and then selects what to do
+; based on the name of the widget which raised the event.
+; If it is a click of the listbox, then it updates the stored list_index, similarly for a click
+; on the checkbox. For a button click it selects which function to call based on the name of the widget.
 PRO SKY_RADIANCE_GUI_EVENT, EVENT
   print, "Event Detected"
   
@@ -66,6 +76,9 @@ PRO SKY_RADIANCE_GUI_EVENT, EVENT
   
 END
 
+; Provides a GUI to allow visualisation options to be selected.
+; Creates the widgets, sets up an info structure to be passed around via a pointer
+; and then hands control over to xmanager to manage the events
 PRO SKY_RADIANCE_GUI
   loadct, 13
   

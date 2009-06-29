@@ -1,3 +1,6 @@
+; Function to calculate the value which will be returned for each timestamped scan
+; This can easily be changed for different situations, at the moment it uses a simple range
+; calculation.
 FUNCTION CALCULATE_VALUE, dns, azimuths, zeniths
   return_value = MAX(dns) - MIN(dns)
   return, return_value
@@ -42,8 +45,4 @@ PRO GET_TIME_SERIES, datetimes=datetimes, values=values
   datetimes = julian_datetimes
   values = new_values
 END
-  
-  ;date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
-  
-  ;plot, julian_datetimes, new_values, psym=1, xtickformat='LABEL_DATE'
   
