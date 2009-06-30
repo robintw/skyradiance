@@ -84,7 +84,7 @@ PRO SKRAMVIS_EVENT, EVENT
 END
 
 PRO SKRAMVIS
-  base = widget_base(col=2, title="Sky Radiance Mapper Visualisation")
+  base = widget_base(col=2, title="Sky Radiance Mapper Visualisation", TLB_FRAME_ATTR=1)
   
   controls_base = widget_base(base, row=4)
   
