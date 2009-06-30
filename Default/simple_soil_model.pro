@@ -18,5 +18,5 @@ values = fltarr(360, 90)
   
   ;new_values = values + min(values)
   polar_contour, values, azimuths, zeniths, c_labels=[1, 1, 1, 1, 1, 1]
-  ;SURFACE, POLAR_SURFACE(transpose(values), zeniths, azimuths, /grid)
+  SURFACE, POLAR_SURFACE(transpose(values), zeniths, azimuths, /grid)
 END
