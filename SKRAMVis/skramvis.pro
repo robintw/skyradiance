@@ -3,10 +3,11 @@
 PRO SET_BROWSED_TEXT, infoptr
   info = *infoptr
 
-  directory = dialog_pickfile(/DIRECTORY)
+  directory = dialog_pickfile(/DIRECTORY, PATH=info.last_dir_path)
   widget_control, info.text_dirname, set_value=directory
    
   info.dirname = directory
+  info.last_dir_path = directory
   
   *infoptr = info
 END
@@ -14,7 +15,7 @@ END
 ; Handler routine called by Sky_Radiance_GUI_Event. Takes a directory name, and a list index
 ; to select the wavelength used. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
-PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_contour_id=win_contour_id, win_image_id=win_image_id
+PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_contour_id=win_contour_id, win_image_id=win_image_id, label_dgratio=label_dgratio
 
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
   line_number = line_nums_array[list_index]
@@ -30,7 +31,9 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=S
   wset, win_contour_id
 
   IF keyword_set(map) THEN BEGIN
-    MAP_PLOT_DATA, azimuths, zeniths, dns, "Sky Radiance Distribution: " + FILE_BASENAME(dirname) + wavelengths_array[list_index] + "nm"
+    time_string = string(datetime, FORMAT='(C(CHI2, ":", CMI2, ":", CSI2))')
+    title = "Sky Radiance Distribution: " + time_string + " " + FILE_BASENAME(dirname) + wavelengths_array[list_index] + "nm"
+    MAP_PLOT_DATA, azimuths, zeniths, dns, title
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
@@ -39,7 +42,11 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=S
   
   SHOW_SKY_IMAGE, datetime
   
-  GET_D_TO_G_RATIO, datetime
+  dgratio = GET_D_TO_G_RATIO(datetime)
+  
+  print, "DG ratio is " + dgratio
+  
+  WIDGET_CONTROL, label_dgratio, SET_VALUE=dgratio
   
 END
 
@@ -69,8 +76,8 @@ PRO SKRAMVIS_EVENT, EVENT
     *infoptr = info
   ENDIF ELSE IF (STRPOS(widget, "Button") ne -1) THEN BEGIN   
     CASE widget OF
-      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id
-      "SurfaceButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /SURFACE
+      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio
+      "SurfaceButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /SURFACE, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio
       "BrowseButton": Set_Browsed_Text, infoptr
     ENDCASE
   ENDIF  
@@ -101,9 +108,14 @@ PRO SKRAMVIS
   copyright_base = widget_base(controls_base, row=1)
   label_copyright = widget_label(copyright_base, value="Created by Robin Wilson, University of Southampton, 2009")
   
-  draw_base = widget_base(base, row=2)
+  draw_base = widget_base(base, row=3)
   
   draw_contour = widget_draw(draw_base, xsize=600, ysize=450)
+  
+  dgratio_base = widget_base(draw_base, col=2)
+  
+  label_label_for_dgratio = widget_label(dgratio_base, value="Diffuse:Global ratio = ")
+  label_dgratio = widget_label(dgratio_base, value="", /DYNAMIC_RESIZE)
   
   draw_image = widget_draw(draw_base, xsize=600, ysize=450)
   
@@ -116,7 +128,9 @@ PRO SKRAMVIS
           type:'',$
           wavelength:'',$
           win_contour_id:0,$
-          win_image_id:0}
+          win_image_id:0,$
+          label_dgratio:label_dgratio,$
+          last_dir_path:"C:\"}
   
   widget_control, base, /realize
   

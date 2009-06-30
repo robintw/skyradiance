@@ -1,9 +1,10 @@
-PRO GET_D_TO_G_RATIO, given_datetime
+FUNCTION GET_D_TO_G_RATIO, given_datetime
   GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio
   
   distance_away = MIN(ABS(datetimes - given_datetime), nearest_index)
   
-  print, "D:G ratio is " + string(ratio[nearest_index])
+  ;IF distance_away le 0.01 THEN return, string(ratio[nearest_index]) ELSE return, "NO MEASUREMENTS"
+  return, string(ratio[nearest_index])
 END
 
 PRO GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio
