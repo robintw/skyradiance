@@ -51,7 +51,14 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       
       spectrum_filename = FILE_DIRNAME(angle_files[i]) + "\" + splitted[0]
       
-      datetime = splitted[1]
+      datetime = double(0.0)
+      
+      reads, splitted[1], datetime, format='(C(CDI2, 1X, CMOI2, 1X, CYI4, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+      print, "GET_SKY_DATA says datetime is: "
+      print, splitted[1]
+      print, "or (converted to julian)
+      print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+      
       
       ; Get's a string of the entire line of the filename at the line number given in angles.txt
       line_string = READ_NUMBERED_LINE(spectrum_filename, line_number)

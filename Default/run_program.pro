@@ -5,7 +5,7 @@
 
 PRO RUN_PROGRAM
   ; Get the sky data from the text files into a usable form
-  GET_SKY_DATA, "D:\UserData\Robin Wilson\AlteredData\ncaveo\16-June\scan3_high", 268, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime
+  GET_SKY_DATA, "D:\UserData\Robin Wilson\AlteredData\ncaveo\17-June\scan1_high", 268, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime
   
   ; --- Visualisation routines are below: uncomment the appropriate one ---
   

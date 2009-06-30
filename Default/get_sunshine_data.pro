@@ -1,4 +1,12 @@
-PRO GET_SUNSHINE_DATA
+PRO GET_D_TO_G_RATIO, given_datetime
+  GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio
+  
+  distance_away = MIN(ABS(datetimes - given_datetime), nearest_index)
+  
+  print, "D:G ratio is " + string(ratio[nearest_index])
+END
+
+PRO GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio
   RESTORE, "D:\UserData\Robin Wilson\SVNCheckout\Default\SunshineDataTemplate.sav"
   
   data = READ_ASCII("D:\UserData\Robin Wilson\Sunshine Sensor\AlteredData.txt", TEMPLATE=plottemplate)
@@ -6,16 +14,15 @@ PRO GET_SUNSHINE_DATA
   times = dblarr(N_ELEMENTS(data.time))
   
   full_dates = data.date + " " + data.time
-  
-  print, full_dates
-  
+   
   reads, full_dates, times, format='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2))'
   
-  help, times
   
   ratio = dblarr(N_ELEMENTS(data.global))
   
-  ratio = data.global / float(data.diffuse)
+  ratio = data.diffuse / float(data.global)
+  datetimes = times
+  
   
   date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
   

@@ -14,7 +14,7 @@ END
 ; Handler routine called by Sky_Radiance_GUI_Event. Takes a directory name, and a list index
 ; to select the wavelength used. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
-PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_id=win_id
+PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_contour_id=win_contour_id, win_image_id=win_image_id
 
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
   line_number = line_nums_array[list_index]
@@ -22,15 +22,25 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=S
   wavelengths_array = [" 340", " 380", " 440", " 500", " 675", " 870", " 939", " 1020"]
   
   print, line_number
-  GET_SKY_DATA, dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=normalise
+  GET_SKY_DATA, dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=normalise, datetime=datetime
   
-  wset, win_id
+  print, "Got datetime of: "
+  print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+  
+  wset, win_contour_id
 
   IF keyword_set(map) THEN BEGIN
     MAP_PLOT_DATA, azimuths, zeniths, dns, "Sky Radiance Distribution: " + FILE_BASENAME(dirname) + wavelengths_array[list_index] + "nm"
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
+  
+  wset, win_image_id
+  
+  SHOW_SKY_IMAGE, datetime
+  
+  GET_D_TO_G_RATIO, datetime
+  
 END
 
 
@@ -59,7 +69,7 @@ PRO SKRAMVIS_EVENT, EVENT
     *infoptr = info
   ENDIF ELSE IF (STRPOS(widget, "Button") ne -1) THEN BEGIN   
     CASE widget OF
-      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_id=info.win_contour_id
+      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id
       "SurfaceButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /SURFACE
       "BrowseButton": Set_Browsed_Text, infoptr
     ENDCASE
@@ -67,16 +77,6 @@ PRO SKRAMVIS_EVENT, EVENT
 END
 
 PRO SKRAMVIS
-  ;image = READ_IMAGE("D:\UserData\Robin Wilson\Sky_animation\DSCN1503.JPG")
-  ;result = size(image)
-  ;aspect_ratio = float(result[3]) / float(result[2])
-  ;print, aspect_ratio
-  ;image = congrid(image, 3, 600, 600*aspect_ratio)
-  ;tv, image, /true
-
-
-  ;loadct, 13
-  
   base = widget_base(col=2, title="Sky Radiance Mapper Visualisation")
   
   controls_base = widget_base(base, row=4)
@@ -103,9 +103,9 @@ PRO SKRAMVIS
   
   draw_base = widget_base(base, row=2)
   
-  draw_contour = widget_draw(draw_base, xsize=500, ysize=450)
+  draw_contour = widget_draw(draw_base, xsize=600, ysize=450)
   
-  draw_image = widget_draw(draw_base, xsize=500, ysize=450)
+  draw_image = widget_draw(draw_base, xsize=600, ysize=450)
   
   ; Set up info structure
   info = {normalise:0,$
