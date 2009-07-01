@@ -15,48 +15,48 @@ END
 ; Handler routine called by Sky_Radiance_GUI_Event. Takes a directory name, and a list index
 ; to select the wavelength used. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
-PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_contour_id=win_contour_id, win_image_id=win_image_id, label_dgratio=label_dgratio, image_dir=image_dir, sunshine_file=sunshine_file
-
+PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
+  ; Dereference info pointer
+  info = *infoptr
+  
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
-  line_number = line_nums_array[list_index]
+  line_number = line_nums_array[info.list_index]
   
   wavelengths_array = [" 340", " 380", " 440", " 500", " 675", " 870", " 939", " 1020"]
   
   print, line_number
-  GET_SKY_DATA, dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=normalise, datetime=datetime
+  GET_SKY_DATA, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=info.normalise, datetime=datetime
   
   print, "Got datetime of: "
   print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
   
-  wset, win_contour_id
+  wset, info.win_contour_id
   
 
   IF keyword_set(map) THEN BEGIN
     time_string = string(datetime, FORMAT='(C(CHI2, ":", CMI2, ":", CSI2))')
-    title = "Sky Radiance Distribution: " + FILE_BASENAME(dirname) + " " + time_string + " " + wavelengths_array[list_index] + "nm"
+    title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
   
-  wset, win_image_id
+  wset, info.win_image_id
   
   erase
   
-  SHOW_SKY_IMAGE, datetime, image_dir
+  SHOW_SKY_IMAGE, datetime, info.image_dir
   
-  dgratio = GET_D_TO_G_RATIO(datetime, sunshine_file)
+  dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
   
   print, "DG ratio is " + dgratio
   
-  WIDGET_CONTROL, label_dgratio, SET_VALUE=dgratio
+  WIDGET_CONTROL, info.label_dgratio, SET_VALUE=dgratio
   
 END
 
 
 PRO SKRAMVIS_EVENT, EVENT
-  print, "Event Detected"
-  
   ; Get the info structure from the uvalue of the base widget
   widget_control, event.top, get_uvalue=infoptr
   info = *infoptr
@@ -64,11 +64,6 @@ PRO SKRAMVIS_EVENT, EVENT
   ; Get the uvalue of the widget that caused the event
   widget_control, event.id, get_uvalue=widget
   
-  print, widget
-  
-  help, event, /structure
-  
-  print, info.win_contour_id
   
   if (STRPOS(widget, "List") ne -1) THEN BEGIN
     info.list_index = event.index
@@ -79,8 +74,8 @@ PRO SKRAMVIS_EVENT, EVENT
     *infoptr = info
   ENDIF ELSE IF (STRPOS(widget, "Button") ne -1) THEN BEGIN   
     CASE widget OF
-      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio, sunshine_file=info.sunshine_file, image_dir=info.image_dir
-      "SurfaceButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /SURFACE, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio
+      "MapButton": Visualise_Data, infoptr, /MAP
+      "SurfaceButton": Visualise_Data, infoptr, /SURFACE
       "BrowseButton": Set_Browsed_Text, infoptr
     ENDCASE
   ENDIF  
