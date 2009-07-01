@@ -12,8 +12,7 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
-; Handler routine called by Sky_Radiance_GUI_Event. Takes a directory name, and a list index
-; to select the wavelength used. Takes keywords to decide what type of plot to display
+; Handler routine called by SKRAMVIS_EVENT. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
 PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   ; Dereference info pointer
@@ -24,15 +23,11 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   wavelengths_array = [" 340", " 380", " 440", " 500", " 675", " 870", " 939", " 1020"]
   
-  print, line_number
   GET_SKY_DATA, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=info.normalise, datetime=datetime
   
-  print, "Got datetime of: "
-  print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
-  
+  ; Set the plot window to be the right window
   wset, info.win_contour_id
   
-
   IF keyword_set(map) THEN BEGIN
     time_string = string(datetime, FORMAT='(C(CHI2, ":", CMI2, ":", CSI2))')
     title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
@@ -41,16 +36,14 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
   
+  ; Erase the previous image
   wset, info.win_image_id
-  
   erase
   
   SHOW_SKY_IMAGE, datetime, info.image_dir
   
+  ; Get the Diffuse:Global ratio and set put it into the label widget
   dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
-  
-  print, "DG ratio is " + dgratio
-  
   WIDGET_CONTROL, info.label_dgratio, SET_VALUE=dgratio
   
 END
@@ -132,12 +125,12 @@ PRO SKRAMVIS
           image_dir:"D:\UserData\Robin Wilson\Sky_animation\",$
           sunshine_file:"D:\UserData\Robin Wilson\Sunshine Sensor\AlteredData.txt"}
   
+  ; Realize the widgets
   widget_control, base, /realize
   
   ; Put window indices into info
   widget_control, draw_contour, get_value=win_contour_id
   widget_control, draw_image, get_value=win_image_id
-  
   info.win_contour_id = win_contour_id
   info.win_image_id = win_image_id
  
@@ -145,13 +138,16 @@ PRO SKRAMVIS
   
   widget_control, base, set_uvalue=infoptr
   
+  ; Erase both draw widgets
   wset, info.win_image_id
   erase
   wset, info.win_contour_id
   erase
   
+  ; Ask for location of sunshine data file and sky image directory
   info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
   info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
   
+  ; Start managing events
   xmanager, 'SKRAMVIS', base, /no_block
 END

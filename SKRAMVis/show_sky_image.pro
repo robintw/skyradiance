@@ -1,10 +1,14 @@
-PRO DISPLAY_IMAGE, filename
-  full_path = filename
-  image = READ_IMAGE(full_path)
+PRO DISPLAY_IMAGE, image_path
+  image = READ_IMAGE(image_path)
+  
+  ; Calculate aspect ratio
   result = size(image)
   aspect_ratio = float(result[3]) / float(result[2])
-  print, aspect_ratio
+
+  ; Resize image for display (they are huge by default!)
   image = congrid(image, 3, 600, 600*aspect_ratio)
+  
+  ; Display image
   tv, image, /true
 END
 
@@ -41,15 +45,15 @@ PRO SHOW_SKY_IMAGE, given_datetime, directory
   
   distance_away = MIN(ABS(datetimes - given_datetime), nearest_index)
   
-  print, "Distance away is "
-  print, distance_away
-  print, "or (converted)"
-  print, distance_away, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+;  print, "Distance away is "
+;  print, distance_away
+;  print, "or (converted)"
+;  print, distance_away, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+;  
+;  print, filenames[nearest_index]
+;  print, datetimes[nearest_index], FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+;  print, given_datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
   
-  print, filenames[nearest_index]
-  print, datetimes[nearest_index], FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
-  print, given_datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
-  
-  
+  ; Only dispay the iamge if it is less than 0.01 julian days away (around 14.4 minutes)
   IF distance_away LE 0.01 THEN DISPLAY_IMAGE, filenames[nearest_index]
 END
