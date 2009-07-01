@@ -1,5 +1,5 @@
 PRO DISPLAY_IMAGE, filename
-  full_path = FILEPATH(filename, ROOT_DIR="D:\UserData\Robin Wilson\Sky_animation\")
+  full_path = filename
   image = READ_IMAGE(full_path)
   result = size(image)
   aspect_ratio = float(result[3]) / float(result[2])
@@ -8,8 +8,8 @@ PRO DISPLAY_IMAGE, filename
   tv, image, /true
 END
 
-PRO SHOW_SKY_IMAGE, given_datetime
-  openr, lun, "D:\UserData\Robin Wilson\Sky_animation\timestamp_sky_conditions.txt", /GET_LUN
+PRO SHOW_SKY_IMAGE, given_datetime, directory
+  openr, lun, FILEPATH("timestamp_sky_conditions.txt", ROOT_DIR=directory), /GET_LUN
   
   datetimes = dblarr(40)
   filenames = strarr(40)
@@ -32,7 +32,7 @@ PRO SHOW_SKY_IMAGE, given_datetime
     
     ; Put into arrays
     datetimes[i] = julian_datetime
-    filenames[i] = filename
+    filenames[i] = FILEPATH(filename, ROOT_DIR=directory)
     
     i++
   ENDWHILE

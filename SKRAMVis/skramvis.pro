@@ -15,7 +15,7 @@ END
 ; Handler routine called by Sky_Radiance_GUI_Event. Takes a directory name, and a list index
 ; to select the wavelength used. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
-PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_contour_id=win_contour_id, win_image_id=win_image_id, label_dgratio=label_dgratio
+PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=SURFACE, win_contour_id=win_contour_id, win_image_id=win_image_id, label_dgratio=label_dgratio, image_dir=image_dir, sunshine_file=sunshine_file
 
   line_nums_array = [2, 108, 268, 431, 926, 1523, 1749, 2027]
   line_number = line_nums_array[list_index]
@@ -29,10 +29,11 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=S
   print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
   
   wset, win_contour_id
+  
 
   IF keyword_set(map) THEN BEGIN
     time_string = string(datetime, FORMAT='(C(CHI2, ":", CMI2, ":", CSI2))')
-    title = "Sky Radiance Distribution: " + time_string + " " + FILE_BASENAME(dirname) + wavelengths_array[list_index] + "nm"
+    title = "Sky Radiance Distribution: " + FILE_BASENAME(dirname) + " " + time_string + " " + wavelengths_array[list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
@@ -40,9 +41,11 @@ PRO VISUALISE_DATA, dirname, list_index, normalise=normalise, MAP=MAP, SURFACE=S
   
   wset, win_image_id
   
-  SHOW_SKY_IMAGE, datetime
+  erase
   
-  dgratio = GET_D_TO_G_RATIO(datetime)
+  SHOW_SKY_IMAGE, datetime, image_dir
+  
+  dgratio = GET_D_TO_G_RATIO(datetime, sunshine_file)
   
   print, "DG ratio is " + dgratio
   
@@ -76,7 +79,7 @@ PRO SKRAMVIS_EVENT, EVENT
     *infoptr = info
   ENDIF ELSE IF (STRPOS(widget, "Button") ne -1) THEN BEGIN   
     CASE widget OF
-      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio
+      "MapButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /MAP, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio, sunshine_file=info.sunshine_file, image_dir=info.image_dir
       "SurfaceButton": Visualise_Data, info.dirname, info.list_index, normalise=info.normalise, /SURFACE, win_contour_id=info.win_contour_id, win_image_id=info.win_image_id, label_dgratio=info.label_dgratio
       "BrowseButton": Set_Browsed_Text, infoptr
     ENDCASE
@@ -130,7 +133,9 @@ PRO SKRAMVIS
           win_contour_id:0,$
           win_image_id:0,$
           label_dgratio:label_dgratio,$
-          last_dir_path:"C:\"}
+          last_dir_path:"C:\",$
+          image_dir:"D:\UserData\Robin Wilson\Sky_animation\",$
+          sunshine_file:"D:\UserData\Robin Wilson\Sunshine Sensor\AlteredData.txt"}
   
   widget_control, base, /realize
   
@@ -145,7 +150,13 @@ PRO SKRAMVIS
   
   widget_control, base, set_uvalue=infoptr
   
+  wset, info.win_image_id
+  erase
+  wset, info.win_contour_id
+  erase
   
+  info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
+  info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
   
   xmanager, 'SKRAMVIS', base, /no_block
 END

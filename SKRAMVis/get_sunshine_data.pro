@@ -1,5 +1,5 @@
-FUNCTION GET_D_TO_G_RATIO, given_datetime
-  GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio
+FUNCTION GET_D_TO_G_RATIO, given_datetime, sunshine_file
+  GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio, sunshine_file
   
   distance_away = MIN(ABS(datetimes - given_datetime), nearest_index)
   
@@ -7,10 +7,10 @@ FUNCTION GET_D_TO_G_RATIO, given_datetime
   return, string(ratio[nearest_index])
 END
 
-PRO GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio
+PRO GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio, filename
   RESTORE, "D:\UserData\Robin Wilson\SVNCheckout\Default\SunshineDataTemplate.sav"
   
-  data = READ_ASCII("D:\UserData\Robin Wilson\Sunshine Sensor\AlteredData.txt", TEMPLATE=plottemplate)
+  data = READ_ASCII(filename, TEMPLATE=plottemplate)
   
   times = dblarr(N_ELEMENTS(data.time))
   
