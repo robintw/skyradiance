@@ -1,5 +1,28 @@
-; Plots the given azimuths, zeniths and dns (provided in an irregularly gridded format
-; (ie. dns is one dimensional) in a polar contour plot based on the orthographic map projection
+;+
+; NAME:
+; MAP_PLOT_DATA 
+;
+; PURPOSE:
+; This function produces a contour plot of the data passed to it, using the
+; map plotting functions in IDL (hence the name). The resulting plot contains
+; the contour plot itself, a colour bar on the right hand side, and a title.
+; 
+; CALLING SEQUENCE:
+;
+; MAP_PLOT_DATA, Azimuths, Zeniths, DNs, Title
+;
+; INPUTS:
+; Azimuths: A 1D array containing the azimuths of all the data to be plotted.
+; 
+; Zeniths: A 1D array containing the zeniths of all the data to be plotted.
+;
+; DNs: A 1D array containing the digital number to plot (ie. the z value for
+;      the contour plot) for each of the azimuths and zeniths passed in the previous
+;      array. That is, the value of DNs[i] is the DN for azimuth[i] and zenith[i].
+;
+; Title: A string containing the title to be displayed over the plot.
+;
+;-
 PRO MAP_PLOT_DATA, azimuths, zeniths, dns, title
   ; Set positions for drawing the plot and the colourbar
   draw_position = [.10, .07, .80, .90]

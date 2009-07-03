@@ -1,5 +1,20 @@
-; Reads the given filename and extracts the specified line number (first line = line 1 not line 0)
-; and returns it as a string
+;+
+; NAME:
+; READ_NUMBERED_LINE 
+;
+; PURPOSE:
+; This procedure reads a certain line from a file, selected by a line number
+; 
+; CALLING SEQUENCE:
+;
+; READ_NUMBERED_FILE, Filename, Line_num
+;
+; INPUTS:
+; Filename: A string containing the filepath to read from.
+; 
+; Line_num: The line number to read. NB: This starts from 1 not 0.
+;
+;-
 FUNCTION READ_NUMBERED_LINE, filename, line_num
   openr, lun, filename, /GET_LUN
   
@@ -12,9 +27,36 @@ FUNCTION READ_NUMBERED_LINE, filename, line_num
   return, line
 END
 
-; Gets the data from the Sky Radiance Mapper (SKRAM) files given a directory path (a scanx_high
-; or scanx_low directory) and a line_number (to select wavelength). Returns arrays of azimuths, zeniths,
-; dns, as well as a timestamp for the scan.
+;+
+; NAME:
+; GET_SKY_DATA 
+;
+; PURPOSE:
+; This procedure gets data from the McGonigle data files produced by the NCAVEO Field Campaign during June 2006.
+; 
+; CALLING SEQUENCE:
+;
+; GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns
+;
+; INPUTS:
+; Dir_path: A string containing the directory to read the data from. This must be a scanX_high or scanX_low directory.
+; 
+; Line_number: The line number to read from this file. This represents the wavelength. For example 440nm = line 268
+; 
+; OUTPUTS:
+; Azimuths: The azimuth data, in a format ready for displaying using MAP_PLOT_DATA.
+; 
+; Zeniths: The zenith data, in a format ready for displaying using MAP_PLOT_DATA.
+; 
+; DNs: The DN data, in a format ready for displaying using MAP_PLOT_DATA.
+; 
+; Datetime: The timestamp of the scan.
+; 
+; KEYWORD PARAMETERS:
+; NORMALISE: This normalises the data before the data is returned, which involves dividing each value by the value at
+;   the centre of the sky (a zenith of 90 degrees).
+;
+;-
 PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime, normalise=normalise
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
