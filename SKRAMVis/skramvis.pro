@@ -5,8 +5,7 @@
 @POLAR_SURFACE_PLOT
 @SHOW_SKY_IMAGE
  
-; Called when the 'Browse' button is clicked and displays a directory selection dialog
-; box, storing the result in the textbox and in the info structure.
+
 PRO SET_BROWSED_TEXT, infoptr
   info = *infoptr
 
