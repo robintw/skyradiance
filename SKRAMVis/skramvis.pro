@@ -1,3 +1,10 @@
+@GET_SUNSHINE_DATA
+@GET_D_TO_G_RATIO
+@GET_SKY_DATA
+@MAP_PLOT_DATA
+@POLAR_SURFACE_PLOT
+@SHOW_SKY_IMAGE
+ 
 ; Called when the 'Browse' button is clicked and displays a directory selection dialog
 ; box, storing the result in the textbox and in the info structure.
 PRO SET_BROWSED_TEXT, infoptr
@@ -122,8 +129,8 @@ PRO SKRAMVIS
           win_image_id:0,$
           label_dgratio:label_dgratio,$
           last_dir_path:"C:\",$
-          image_dir:"D:\UserData\Robin Wilson\Sky_animation\",$
-          sunshine_file:"D:\UserData\Robin Wilson\Sunshine Sensor\AlteredData.txt"}
+          image_dir:"",$
+          sunshine_file:""}
   
   ; Realize the widgets
   widget_control, base, /realize
@@ -134,8 +141,12 @@ PRO SKRAMVIS
   info.win_contour_id = win_contour_id
   info.win_image_id = win_image_id
  
-  infoptr = ptr_new(info)
+   ; Ask for location of sunshine data file and sky image directory
+  info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
+  info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
   
+  infoptr = ptr_new(info)
+    
   widget_control, base, set_uvalue=infoptr
   
   ; Erase both draw widgets
@@ -144,10 +155,7 @@ PRO SKRAMVIS
   wset, info.win_contour_id
   erase
   
-  ; Ask for location of sunshine data file and sky image directory
-  info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
-  info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
-  
+
   ; Start managing events
   xmanager, 'SKRAMVIS', base, /no_block
 END

@@ -1,31 +1,36 @@
-FUNCTION GET_D_TO_G_RATIO, given_datetime, sunshine_file
-  GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio, sunshine_file
-  
-  distance_away = MIN(ABS(datetimes - given_datetime), nearest_index)
-  
-  ;IF distance_away le 0.01 THEN return, string(ratio[nearest_index]) ELSE return, "NO MEASUREMENTS"
-  return, string(ratio[nearest_index])
-END
 
-PRO GET_SUNSHINE_DATA, datetimes=datetimes, ratio=ratio, filename
-  RESTORE, "D:\UserData\Robin Wilson\SVNCheckout\Default\SunshineDataTemplate.sav"
+
+PRO GET_SUNSHINE_DATA, filename, datetimes=datetimes, ratio=ratio
+  RESTORE, "Sunshine_Data_Template.sav"
   
-  data = READ_ASCII(filename, TEMPLATE=plottemplate)
+  data = READ_ASCII(filename, TEMPLATE=Sunshine_Data_Template)
   
-  times = dblarr(N_ELEMENTS(data.time))
+  datetime_string = data.date + " " + data.time
   
-  full_dates = data.date + " " + data.time
-   
-  reads, full_dates, times, format='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2))'
+  times = dblarr(N_ELEMENTS(data.date))
   
+  reads, datetime_string, times, format='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
   
   ratio = dblarr(N_ELEMENTS(data.global))
   
   ratio = data.diffuse / float(data.global)
+  
+  print, data.global
+  print, data.diffuse
+  
+  print, "Diffuse[250] = "
+  print, data.diffuse[250]
+  
+  print, "Global[250] = "
+  print, data.global[250]
+  
+  print, "Ratio[250] = "
+  print, ratio[250]
+  
   datetimes = times
   
   
-  date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
+  ;date_label = LABEL_DATE(DATE_FORMAT="%H:%I:%S")
   
   ;plot, times, ratio, /nodata, ystyle=4, xtickformat='LABEL_DATE'
   
