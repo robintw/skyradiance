@@ -27,6 +27,44 @@ FUNCTION READ_NUMBERED_LINE, filename, line_num
   return, line
 END
 
+FUNCTION CALCULATE_OFFSET, dns, line_number
+  dark_files = FILE_SEARCH("D:\UserData\Robin Wilson\AlteredData\ncaveo\rad\dark", "*spectrum*")
+  
+  dark_values = fltarr(N_ELEMENTS(dark_files))
+  
+  ; For each spectrum file
+  FOR i=0, N_ELEMENTS(dark_files)-1 DO BEGIN
+    line_string = READ_NUMBERED_LINE(dark_files[i], line_number)
+    reads, line_string, dn, format="(f)"
+    
+    dark_values[i] = dn
+  ENDFOR
+  
+  dark_value = MIN(dark_values)
+  
+  return, dark_value
+END
+
+FUNCTION CALIBRATE_DATA, dns, line_number
+  print, "Original DNs info:"
+  print, "MAX = ", MAX(dns)
+  print, "MIN = ", MIN(dns)
+
+  offset = CALCULATE_OFFSET(dns, line_number)
+  
+  print, "Dark Current is ", offset
+  
+  gain = 1
+  
+  calibrated_dns = (dns - offset) * gain
+  
+  print, "Corrected DNs info"
+  print, "MAX = ", MAX(calibrated_dns)
+  print, "MIN = ", MIN(calibrated_dns)
+  
+  return, calibrated_dns
+END
+
 ;+
 ; NAME:
 ; GET_SKY_DATA 
@@ -142,12 +180,16 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   ENDFOR
   
   
+  dns = CALIBRATE_DATA(dns, line_number)
+  
   IF KEYWORD_SET(normalise) THEN BEGIN
     ; Normalise data
     centre_indexes = WHERE(zeniths EQ 90)
     average_centre = MEAN(dns[centre_indexes])    
     dns = float(dns) / average_centre
   ENDIF
+  
+  
   
   ; Close all files
   close, /all
