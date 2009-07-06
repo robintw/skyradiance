@@ -41,13 +41,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
-  
-  ; Erase the previous image
-  wset, info.win_image_id
-  erase
-  
-  SHOW_SKY_IMAGE, datetime, info.image_dir
-  
+    
   ; Get the Diffuse:Global ratio and set put it into the label widget
   dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
   WIDGET_CONTROL, info.label_dgratio, SET_VALUE=dgratio
@@ -55,7 +49,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
 END
 
 
-PRO SKRAMVIS_EVENT, EVENT
+PRO HBModelFit_EVENT, EVENT
   ; Get the info structure from the uvalue of the base widget
   widget_control, event.top, get_uvalue=infoptr
   info = *infoptr
@@ -80,7 +74,7 @@ PRO SKRAMVIS_EVENT, EVENT
   ENDIF  
 END
 
-PRO SKRAMVIS
+PRO HBModelFit
   base = widget_base(col=2, title="Sky Radiance Mapper Visualisation", TLB_FRAME_ATTR=1)
   
   controls_base = widget_base(base, row=4)
@@ -142,7 +136,6 @@ PRO SKRAMVIS
  
    ; Ask for location of sunshine data file and sky image directory
   info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
-  info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
   
   infoptr = ptr_new(info)
     
@@ -156,5 +149,5 @@ PRO SKRAMVIS
   
 
   ; Start managing events
-  xmanager, 'SKRAMVIS', base, /no_block
+  xmanager, 'HBMODELFIT', base, /no_block
 END
