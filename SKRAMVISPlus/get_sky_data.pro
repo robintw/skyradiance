@@ -45,12 +45,24 @@ FUNCTION CALCULATE_OFFSET, dns, line_number
   return, dark_value
 END
 
-FUNCTION CALIBRATE_DATA, dns, line_number
+FUNCTION CALIBRATE_DATA, azimuths, zeniths, dns, line_number
   print, "Original DNs info:"
   print, "MAX = ", MAX(dns)
   print, "MIN = ", MIN(dns)
+  
+;  indices = WHERE(dns LT 100)
+;  print, "Indices = ", indices
+;  print, "Azimuths = ", azimuths[indices]
+;  print, "Zeniths = ", zeniths[indices]
+;
+;  FOR i=0,N_ELEMENTS(azimuths)-1 DO BEGIN
+;    print, "Az = ", azimuths[i], "Zen = ", zeniths[i], "DN = ", dns[i]
+;  ENDFOR
+
 
   offset = CALCULATE_OFFSET(dns, line_number)
+  
+  IF line_number GE 1523 THEN offset = 115
   
   print, "Dark Current is ", offset
   
@@ -102,9 +114,9 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   line = ""
   
   ; Set up blank arrays ready for data to be inserted
-  azimuths = intarr(N_ELEMENTS(angle_files)*11)
-  dns = fltarr(N_ELEMENTS(angle_files)*11)
-  zeniths = fltarr(N_ELEMENTS(angle_files)*11)
+  azimuths = intarr((N_ELEMENTS(angle_files)-1)*11)
+  dns = fltarr((N_ELEMENTS(angle_files)-1)*11)
+  zeniths = fltarr((N_ELEMENTS(angle_files)-1)*11)
   
   ; For each angle.txt file
   FOR i=0, N_ELEMENTS(angle_files)-1 DO BEGIN
@@ -180,13 +192,11 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   ENDFOR
   
   
-  dns = CALIBRATE_DATA(dns, line_number)
+  dns = CALIBRATE_DATA(azimuths, zeniths, dns, line_number)
   
   IF KEYWORD_SET(normalise) THEN BEGIN
     ; Normalise data
-    centre_indexes = WHERE(zeniths EQ 90)
-    average_centre = MEAN(dns[centre_indexes])    
-    dns = float(dns) / average_centre
+    dns = float(dns) / MAX(dns)
   ENDIF
   
   

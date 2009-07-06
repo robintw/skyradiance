@@ -20,5 +20,5 @@ FUNCTION GET_D_TO_G_RATIO, given_datetime, sunshine_file
   print, ratio[nearest_index]
   
   ;IF distance_away le 0.01 THEN return, string(ratio[nearest_index]) ELSE return, "NO MEASUREMENTS"
-  return, string(ratio[nearest_index])
+  return, STRTRIM(string(ratio[nearest_index]))
 END

@@ -31,16 +31,21 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   GET_SKY_DATA, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=info.normalise, datetime=datetime
   
+  
   ; Set the plot window to be the right window
-  wset, info.win_contour_id
+  wset, info.win_measured_id
+  
+  time_string = string(datetime, FORMAT='(C(CHI2.2, ":", CMI2.2, ":", CSI2.2))')
   
   IF keyword_set(map) THEN BEGIN
-    time_string = string(datetime, FORMAT='(C(CHI2.2, ":", CMI2.2, ":", CSI2.2))')
+    
     title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
+  
+  WIDGET_CONTROL, info.label_time, SET_VALUE=STRTRIM(time_string)
   
   ; Erase the previous image
   wset, info.win_image_id
@@ -55,7 +60,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
 END
 
 
-PRO SKRAMVIS_EVENT, EVENT
+PRO SKRAMVISPLUS_EVENT, EVENT
   ; Get the info structure from the uvalue of the base widget
   widget_control, event.top, get_uvalue=infoptr
   info = *infoptr
@@ -80,53 +85,63 @@ PRO SKRAMVIS_EVENT, EVENT
   ENDIF  
 END
 
-PRO SKRAMVIS
-  base = widget_base(col=2, title="Sky Radiance Mapper Visualisation", TLB_FRAME_ATTR=1)
+PRO SKRAMVISPlus
+  base = widget_base(col=2, title="Sky Radiance Mapper Visualisation PLUS", TLB_FRAME_ATTR=1)
   
-  controls_base = widget_base(base, row=4)
+  left_side_base = widget_base(base, row=4)
   
-  filename_base = widget_base(controls_base, col=3)
-  label_dirname = widget_label(filename_base, value="Directory:")
-  text_dirname = widget_text(filename_base, uvalue="FilenameText", xsize=50)
-  button_browse = widget_button(filename_base, value="Browse", uvalue="BrowseButton")
+    controls_base = widget_base(left_side_base, row=4)
+    
+      filename_base = widget_base(controls_base, col=3)
+        label_dirname = widget_label(filename_base, value="Directory:")
+        text_dirname = widget_text(filename_base, uvalue="FilenameText", xsize=50)
+        button_browse = widget_button(filename_base, value="Browse", uvalue="BrowseButton")
+      
+      parameters_base = widget_base(controls_base, col=3)
+        label_wavelengths = widget_label(parameters_base, value="Wavelength:")
+        wavelength_list = string([340, 380, 440, 500, 675, 870, 939, 1020])
+        list = widget_list(parameters_base, value=wavelength_list, ysize=8, uvalue="List")
+      
+      checkbox_base = widget_base(parameters_base, /NONEXCLUSIVE)
+        checkbox_normalise = widget_button(checkbox_base, value="Normalise", uvalue="NormaliseCheckbox")
+      
+      button_base = widget_base(controls_base, row=1)
+        button_map = widget_button(button_base, value="Show Contour Plot", uvalue="MapButton")
+        button_surface = widget_button(button_base, value="Show Surface Plot", uvalue="SurfaceButton")
+    
+    metadata_base = widget_base(left_side_base, row=4, /GRID_LAYOUT)
+      label_metadata = widget_label(metadata_base, value="Metadata:")
+      label_nothing = widget_label(metadata_base, value="")
+      label_label_for_time = widget_label(metadata_base, value="Time:")
+      label_time = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
+      label_label_for_dgratio = widget_label(metadata_base, value="D:G ratio:")
+      label_dgratio = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
+      label_label_for_AOT = widget_label(metadata_base, value="AOT:")
+      label_AOT = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
+      
   
-  parameters_base = widget_base(controls_base, col=3)
-  label_wavelengths = widget_label(parameters_base, value="Wavelength:")
-  wavelength_list = string([340, 380, 440, 500, 675, 870, 939, 1020])
-  list = widget_list(parameters_base, value=wavelength_list, ysize=8, uvalue="List")
+    draw_image = widget_draw(left_side_base, xsize=600, ysize=450)
   
-  checkbox_base = widget_base(parameters_base, /NONEXCLUSIVE)
-  checkbox_normalise = widget_button(checkbox_base, value="Normalise", uvalue="NormaliseCheckbox")
+    copyright_base = widget_base(left_side_base, row=1)
+      label_copyright = widget_label(copyright_base, value="Created by Robin Wilson, University of Southampton, 2009") 
   
-  button_base = widget_base(controls_base, row=1)
-  button_map = widget_button(button_base, value="Show Contour Plot", uvalue="MapButton")
-  button_surface = widget_button(button_base, value="Show Surface Plot", uvalue="SurfaceButton")
-  
-  copyright_base = widget_base(controls_base, row=1)
-  label_copyright = widget_label(copyright_base, value="Created by Robin Wilson, University of Southampton, 2009")
-  
-  draw_base = widget_base(base, row=3)
-  
-  draw_contour = widget_draw(draw_base, xsize=600, ysize=450)
-  
-  dgratio_base = widget_base(draw_base, col=2)
-  
-  label_label_for_dgratio = widget_label(dgratio_base, value="Diffuse:Global ratio = ")
-  label_dgratio = widget_label(dgratio_base, value="", /DYNAMIC_RESIZE)
-  
-  draw_image = widget_draw(draw_base, xsize=600, ysize=450)
+  draw_base = widget_base(base, row=2)
+    draw_model = widget_draw(draw_base, xsize=600, ysize=450)
+    draw_measured = widget_draw(draw_base, xsize=600, ysize=450)
   
   ; Set up info structure
   info = {normalise:0,$
           dirname:'',$
           text_dirname:text_dirname,$
-          list:list,$
           list_index:'',$
           type:'',$
           wavelength:'',$
-          win_contour_id:0,$
+          win_measured_id:0,$
+          win_modelled_id:0,$
           win_image_id:0,$
           label_dgratio:label_dgratio,$
+          label_time:label_time,$
+          label_AOT:label_AOT,$
           last_dir_path:"C:\",$
           image_dir:"",$
           sunshine_file:""}
@@ -135,10 +150,12 @@ PRO SKRAMVIS
   widget_control, base, /realize
   
   ; Put window indices into info
-  widget_control, draw_contour, get_value=win_contour_id
+  widget_control, draw_measured, get_value=win_measured_id
   widget_control, draw_image, get_value=win_image_id
-  info.win_contour_id = win_contour_id
+  widget_control, draw_model, get_value=win_model_id
+  info.win_measured_id = win_measured_id
   info.win_image_id = win_image_id
+  info.win_modelled_id = win_model_id
  
    ; Ask for location of sunshine data file and sky image directory
   info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
@@ -150,11 +167,13 @@ PRO SKRAMVIS
   
   ; Erase both draw widgets
   wset, info.win_image_id
-  erase
-  wset, info.win_contour_id
-  erase
+  Erase, Color=FSC_Color('white')
+  wset, info.win_measured_id
+  Erase, Color=FSC_Color('white')
+  wset, info.win_modelled_id
+  Erase, Color=FSC_Color('white')
   
 
   ; Start managing events
-  xmanager, 'SKRAMVIS', base, /no_block
+  xmanager, 'SKRAMVISPlus', base, /no_block
 END
