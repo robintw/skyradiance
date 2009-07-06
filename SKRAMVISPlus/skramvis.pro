@@ -18,56 +18,6 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
-PRO RFunct, X, A, F, pder
-  BRUNGER_HOOPER_MODEL, A[0], A[1], A[2], A[3], values=values
-  
-  
-
-  F = CALCULATE_SKY_VALUE(A[0], A[1], A[2], A[3], X[1]*!DTOR, X[0]*!DTOR, X[3]*!DTOR, X[2]*!DTOR)
-  
-  F = double(F) / MAX(values)
-  print, "F is calculated to be, ", F
-END 
-
-
-PRO DO_STATISTICS, azimuths, zeniths, dns
-  
-  sun_phi = 330
-  sun_theta = 30
-  
-  ; Independant Variables: view_phi, view_theta, sun_phi, sun_theta
-  X = intarr(N_ELEMENTS(azimuths), 4)
-  
-  ;FOR phi=0, 360-1,30 DO BEGIN
-  ;  FOR theta=0, 90-1,18 DO BEGIN
-  ;    array_index = (90*phi) + theta
-  ;    
-  ;    X[array_index, 0] = phi
-  ;    X[array_index, 1] = theta
-  ;  ENDFOR
-  ;ENDFOR
-  
-  X[*, 0] = azimuths
-  X[*, 1] = zeniths
-    
-  X[*, 2] = replicate(sun_phi, N_ELEMENTS(azimuths))
-  X[*, 3] = replicate(sun_theta, N_ELEMENTS(azimuths))
-  
-  ; Dependant Variables
-  Y = dns
-  
-  A = double([0.25, -0.2576, 2.3127, 3.5189])
-  
-  result = MPCURVEFIT(double(X), double(Y), replicate(1.0, 360*90), A, FUNCTION_NAME="RFunct", /NODERIVATIVE)
-  
-  
-  BRUNGER_HOOPER_MODEL, A[0], A[1], A[2], A[3], azimuths=azimuths, zeniths=zeniths, values=values
-  
-  SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR)
-  print, A
-  
-END
-
 ; Handler routine called by SKRAMVIS_EVENT. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
 PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
@@ -79,7 +29,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   wavelengths_array = [" 340", " 380", " 440", " 500", " 675", " 870", " 939", " 1020"]
   
-  GET_SKY_DATA_NEW, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, /NORMALISE, datetime=datetime
+  GET_SKY_DATA, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=info.normalise, datetime=datetime
   
   ; Set the plot window to be the right window
   wset, info.win_contour_id
@@ -88,21 +38,24 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
     time_string = string(datetime, FORMAT='(C(CHI2.2, ":", CMI2.2, ":", CSI2.2))')
     title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
-    DO_STATISTICS, azimuths, zeniths, dns
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
   ENDIF
-    
+  
+  ; Erase the previous image
+  wset, info.win_image_id
+  erase
+  
+  SHOW_SKY_IMAGE, datetime, info.image_dir
+  
   ; Get the Diffuse:Global ratio and set put it into the label widget
-  ;dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
- ;WIDGET_CONTROL, info.label_dgratio, SET_VALUE=dgratio
-  
-  
+  dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
+  WIDGET_CONTROL, info.label_dgratio, SET_VALUE=dgratio
   
 END
 
 
-PRO HBModelFit_EVENT, EVENT
+PRO SKRAMVIS_EVENT, EVENT
   ; Get the info structure from the uvalue of the base widget
   widget_control, event.top, get_uvalue=infoptr
   info = *infoptr
@@ -127,7 +80,7 @@ PRO HBModelFit_EVENT, EVENT
   ENDIF  
 END
 
-PRO HBModelFit
+PRO SKRAMVIS
   base = widget_base(col=2, title="Sky Radiance Mapper Visualisation", TLB_FRAME_ATTR=1)
   
   controls_base = widget_base(base, row=4)
@@ -142,8 +95,8 @@ PRO HBModelFit
   wavelength_list = string([340, 380, 440, 500, 675, 870, 939, 1020])
   list = widget_list(parameters_base, value=wavelength_list, ysize=8, uvalue="List")
   
-  ;checkbox_base = widget_base(parameters_base, /NONEXCLUSIVE)
-  ;checkbox_normalise = widget_button(checkbox_base, value="Normalise", uvalue="NormaliseCheckbox")
+  checkbox_base = widget_base(parameters_base, /NONEXCLUSIVE)
+  checkbox_normalise = widget_button(checkbox_base, value="Normalise", uvalue="NormaliseCheckbox")
   
   button_base = widget_base(controls_base, row=1)
   button_map = widget_button(button_base, value="Show Contour Plot", uvalue="MapButton")
@@ -189,6 +142,7 @@ PRO HBModelFit
  
    ; Ask for location of sunshine data file and sky image directory
   info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
+  info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
   
   infoptr = ptr_new(info)
     
@@ -202,5 +156,5 @@ PRO HBModelFit
   
 
   ; Start managing events
-  xmanager, 'HBMODELFIT', base, /no_block
+  xmanager, 'SKRAMVIS', base, /no_block
 END
