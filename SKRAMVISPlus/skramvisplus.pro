@@ -18,7 +18,7 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
-PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot
+PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map=map
   k_array = [ 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15 ]
   kt_array = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85 ]
   
@@ -29,13 +29,17 @@ PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot
   print, "SUN AZIMUTH = ", sun_azimuth
   
   RUN_SKY_RADIANCE_MODEL, k_array[k_nearest_index], kt_array[kt_nearest_index], sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
-  SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
+  
   title_string = "Modelled Sky: k = " + string(k_array[k_nearest_index]) + " kt = " + string(kt_array[kt_nearest_index])
-  XYOUTS, 0.5, 0.9, title_string, /NORMAL, ALIGNMENT=0.5, color=FSC_Color("black")
+  
+  if KEYWORD_SET(surface) then begin
+    SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
+    XYOUTS, 0.5, 0.9, title_string, /NORMAL, ALIGNMENT=0.5, color=FSC_Color("black")
+  endif else if keyword_set(map) then begin
+    MAP_PLOT_DATA, azimuths, zeniths, values, title_string
+  endif
 END
 
-; Handler routine called by SKRAMVIS_EVENT. Takes keywords to decide what type of plot to display
-; and whether to normalise the data or not.
 PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   ; Dereference info pointer
   info = *infoptr
@@ -62,10 +66,12 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   IF keyword_set(map) THEN BEGIN 
     title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
+    wset, info.win_modelled_id
+    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, /MAP
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
     wset, info.win_modelled_id
-    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot
+    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, /SURFACE
   ENDIF
   
   WIDGET_CONTROL, info.label_time, SET_VALUE=STRTRIM(time_string)
