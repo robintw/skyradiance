@@ -104,7 +104,13 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
     
     ; Get the date out of it and read that into a float
     date_string = strmid(line_string, 0, 20)
-    reads, date_string, x, format="(C(CYI4, 1X, CMOI2, 1X, CDI2, 2X, CHI2, 1X, CMI2, 1X, CSI2))"
+    
+    format_string_one = "(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))"
+    format_string_two = "(C(CYI4, 1X, CMOI2, 1X, CDI2, 2X, CHI2, 1X, CMI2, 1X, CSI2))"
+   
+    if STRMID(date_string, 11, 1) EQ " " THEN format_string = format_string_two ELSE format_string = format_string_one
+    
+    reads, date_string, x, format=format_string
     
     rest_of_line = strmid(line_string, 21)
     reads, rest_of_line, read_array

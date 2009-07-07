@@ -156,4 +156,5 @@ END
 PRO SKY_RADIANCE_MODEL
   RUN_SKY_RADIANCE_MODEL, 0.25, 0.75, 30, 180, azimuths=azimuths, zeniths=zeniths, values=values
   SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR)
+  XYOUTS, 0.5, 0.9, "Test Title", /NORMAL, ALIGNMENT=0.5
 END

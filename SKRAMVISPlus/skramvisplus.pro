@@ -18,17 +18,20 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
-PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio
+PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot
   k_array = [ 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15 ]
   kt_array = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85 ]
   
-  distance_away = MIN(ABS(k_array - dgratio), nearest_index)
+  distance_away = MIN(ABS(k_array - dgratio), k_nearest_index)
+  distance_away = MIN(ABS(kt_array - (1 - aot)), kt_nearest_index)
   
   print, "SUN ZENITH = ", sun_zenith
   print, "SUN AZIMUTH = ", sun_azimuth
   
-  RUN_SKY_RADIANCE_MODEL, k_array[nearest_index], 0.75, sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
+  RUN_SKY_RADIANCE_MODEL, k_array[k_nearest_index], kt_array[kt_nearest_index], sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
   SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
+  title_string = "Modelled Sky: k = " + string(k_array[k_nearest_index]) + " kt = " + string(kt_array[kt_nearest_index])
+  XYOUTS, 0.5, 0.9, title_string, /NORMAL, ALIGNMENT=0.5, color=FSC_Color("black")
 END
 
 ; Handler routine called by SKRAMVIS_EVENT. Takes keywords to decide what type of plot to display
@@ -48,6 +51,9 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
   WIDGET_CONTROL, info.label_dgratio, SET_VALUE=string(dgratio)
   
+  aot = GET_AOT_DATA(info.microtops_file, wavelengths_array[info.list_index], datetime)
+  WIDGET_CONTROL, info.label_AOT, SET_VALUE=string(aot)
+  
   ; Set the plot window to be the right window
   wset, info.win_measured_id
   
@@ -59,7 +65,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
     wset, info.win_modelled_id
-    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio
+    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot
   ENDIF
   
   WIDGET_CONTROL, info.label_time, SET_VALUE=STRTRIM(time_string)
@@ -156,7 +162,8 @@ PRO SKRAMVISPlus
           label_AOT:label_AOT,$
           last_dir_path:"C:\",$
           image_dir:"",$
-          sunshine_file:""}
+          sunshine_file:"",$
+          microtops_file:""}
   
   ; Realize the widgets
   widget_control, base, /realize
@@ -169,8 +176,9 @@ PRO SKRAMVISPlus
   info.win_image_id = win_image_id
   info.win_modelled_id = win_model_id
  
-   ; Ask for location of sunshine data file and sky image directory
+   ; Ask for location of data files
   info.sunshine_file = dialog_pickfile(TITLE="Select Sunshine Sensor data file")
+  info.microtops_file = dialog_pickfile(TITLE="Select Microtops data file")
   info.image_dir = dialog_pickfile(TITLE="Select image directory", /directory)
   
   infoptr = ptr_new(info)
