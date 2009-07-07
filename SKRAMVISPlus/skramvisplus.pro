@@ -18,6 +18,19 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
+PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio
+  k_array = [ 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15 ]
+  kt_array = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85 ]
+  
+  distance_away = MIN(ABS(k_array - dgratio), nearest_index)
+  
+  print, "SUN ZENITH = ", sun_zenith
+  print, "SUN AZIMUTH = ", sun_azimuth
+  
+  RUN_SKY_RADIANCE_MODEL, k_array[nearest_index], 0.75, sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
+  SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
+END
+
 ; Handler routine called by SKRAMVIS_EVENT. Takes keywords to decide what type of plot to display
 ; and whether to normalise the data or not.
 PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
@@ -29,20 +42,24 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   wavelengths_array = [" 340", " 380", " 440", " 500", " 675", " 870", " 939", " 1020"]
   
-  GET_SKY_DATA, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=info.normalise, datetime=datetime
+  GET_SKY_DATA, info.dirname, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, normalise=info.normalise, datetime=datetime, sun_azimuth=sun_azimuth, sun_zenith=sun_zenith
   
+  ; Get the Diffuse:Global ratio and set put it into the label widget
+  dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
+  WIDGET_CONTROL, info.label_dgratio, SET_VALUE=string(dgratio)
   
   ; Set the plot window to be the right window
   wset, info.win_measured_id
   
   time_string = string(datetime, FORMAT='(C(CHI2.2, ":", CMI2.2, ":", CSI2.2))')
   
-  IF keyword_set(map) THEN BEGIN
-    
+  IF keyword_set(map) THEN BEGIN 
     title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
+    wset, info.win_modelled_id
+    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio
   ENDIF
   
   WIDGET_CONTROL, info.label_time, SET_VALUE=STRTRIM(time_string)
@@ -51,12 +68,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   wset, info.win_image_id
   erase
   
-  SHOW_SKY_IMAGE, datetime, info.image_dir
-  
-  ; Get the Diffuse:Global ratio and set put it into the label widget
-  dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
-  WIDGET_CONTROL, info.label_dgratio, SET_VALUE=dgratio
-  
+  SHOW_SKY_IMAGE, datetime, info.image_dir  
 END
 
 

@@ -15,35 +15,47 @@ FUNCTION CALCULATE_SKY_VALUE, a0, a1, a2, a3, view_theta, view_phi, sun_theta, s
   ; Calculate the final value for this point
   value = (a0 + a1 * cos(view_theta) + a2 * exp(-a3 * psi)) / (!PI * (a0 + 2*a1/3) + 2*a2*I)
   
-  return, value
+  return, double(value)
 END
 
-PRO BRUNGER_HOOPER_MODEL, a0, a1, a2, a3, azimuths=azimuths, zeniths=zeniths, values=values, s_theta, s_phi
+PRO BRUNGER_HOOPER_MODEL, a0, a1, a2, a3, azimuths=return_azimuths, zeniths=return_zeniths, values=return_values, s_theta, s_phi
   sun_theta = s_theta*!DTOR
-  sun_phi = s_phi*!DTOR  
+  sun_phi = s_phi*!DTOR
+  
+  Gd = 5 ; Diffuse irradiance on horiz. surface
+  
   
   ; Initialise arrays
-  azimuths = intarr(360*90)
-  zeniths = intarr(360*90)
-  values = fltarr(360 * 90)
+  my_azimuths = intarr(360*90)
+  my_zeniths = intarr(360*90)
+  my_values = dblarr(360*90)
 
-  FOR phi=0, 360-1,30 DO BEGIN
-    FOR theta=0, 90-1,18 DO BEGIN
+  FOR phi=0, 360-1 DO BEGIN
+    FOR theta=0, 90-1 DO BEGIN
       ; Convert the current phi and theta to radians
       view_phi = phi*!DTOR
       view_theta = theta*!DTOR
       
-      value = CALCULATE_VALUE(a0, a1, a2, a3, view_theta, view_phi, sun_theta, sun_phi)
+      value = CALCULATE_SKY_VALUE(a0, a1, a2, a3, view_theta, view_phi, sun_theta, sun_phi)
       
-      array_index = (90*phi) + theta
+      ;value = double(1)
+      
+      array_index = long((90*phi) + theta)
       
       ; Put the value into the array
-      values[array_index] = value
-      azimuths[array_index] = phi
-      zeniths[array_index] = theta
+      my_values[array_index] = value
+      my_azimuths[array_index] = phi
+      my_zeniths[array_index] = theta
       
     ENDFOR
   ENDFOR
+  
+  my_values = my_values / MAX(my_values)
+  
+  return_values = my_values
+  return_azimuths = my_azimuths
+  return_zeniths = my_zeniths
+  
 END
 
 PRO RUN_SKY_RADIANCE_MODEL, k, kt, sun_theta, sun_phi, azimuths=azimuths, zeniths=zeniths, values=values
@@ -95,8 +107,32 @@ PRO RUN_SKY_RADIANCE_MODEL, k, kt, sun_theta, sun_phi, azimuths=azimuths, zenith
   parameters[4, 6, *] = [0.2070, -0.0927, 1.1098, 2.5586]
   parameters[4, 7, *] = [0.2477, -0.0711, 1.5836, 3.450]
   
+  ; k = 0.45
+  parameters[5, 3, *] = [0.2337, -0.1015, 11.792, 5.3698]
+  parameters[5, 4, *] = [0.2822, -0.1842, 6.0300, 4.5241]
+  parameters[5, 5, *] = [0.2916, -0.2065, 2.7327, 3.7624]
+  parameters[5, 6, *] = [0.2583, -0.1654, 1.9525, 3.3769]
+  parameters[5, 7, *] = [0.2457, -0.1398, 1.512, 2.964]
+  parameters[5, 8, *] = [0.2315, -0.2028, 1.5803, 2.3229]
   
-    
+  ; k = 0.35
+  parameters[6, 4, *] = [0.3162, -0.2039, 6.2226, 5.8975]
+  parameters[6, 5, *] = [0.3006, -0.2172, 4.5443, 4.2660]
+  parameters[6, 6, *] = [0.2871, -0.2184, 2.6467, 3.594]
+  parameters[6, 7, *] = [0.2491, -0.2224, 1.5992, 2.6404]
+  parameters[6, 8, *] = [0.2510, 0.0907, 0.9733, 2.6775]
+  
+  ; k = 0.25
+  parameters[7, 5, *] = [0.3417, -0.2574, 4.1918, 43268]
+  parameters[7, 6, *] = [0.3153, -0.2338, 3.8860, 4.3620]
+  parameters[7, 7, *] = [0.3071, -0.2576, 2.3127, 3.5189]
+  parameters[7, 8, *] = [0.2971, -0.3126, 1.3594, 2.397]
+  
+  ; k = 0.15
+  parameters[8, 6, *] = [0.3360, -0.2600, 4.2481, 4.3727]
+  parameters[8, 7, *] = [0.3243, -0.3003, 1.9157, 3.2680]
+  parameters[8, 8, *] = [0.3061, -0.4531, 1.612, 2.319]
+      
   
   ; Choose the a0, a1, a2 and a3 parameters using the given k and kt values
   k_index = WHERE(k_array EQ k)
@@ -109,11 +145,15 @@ PRO RUN_SKY_RADIANCE_MODEL, k, kt, sun_theta, sun_phi, azimuths=azimuths, zenith
   
   params = parameters[k_index, kt_index, *]
   
+  print, "IN RUN_SKY_RADIANCE_MODEL"
+  print, "Sun Theta = ", sun_theta
+  print, "Sun Phi = ", sun_phi
+  
   BRUNGER_HOOPER_MODEL, params[0], params[1], params[2], params[3], azimuths=azimuths, zeniths=zeniths, values=values, sun_theta, sun_phi 
   
 END
 
 PRO SKY_RADIANCE_MODEL
-  RUN_SKY_RADIANCE_MODEL, 0.95, 0.05, 30, 0, azimuths=azimuths, zeniths=zeniths, values=values
+  RUN_SKY_RADIANCE_MODEL, 0.25, 0.75, 30, 180, azimuths=azimuths, zeniths=zeniths, values=values
   SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR)
 END

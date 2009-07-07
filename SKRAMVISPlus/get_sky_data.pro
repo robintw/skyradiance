@@ -50,14 +50,14 @@ FUNCTION CALIBRATE_DATA, azimuths, zeniths, dns, line_number
   print, "MAX = ", MAX(dns)
   print, "MIN = ", MIN(dns)
   
-;  indices = WHERE(dns LT 100)
-;  print, "Indices = ", indices
-;  print, "Azimuths = ", azimuths[indices]
-;  print, "Zeniths = ", zeniths[indices]
-;
-;  FOR i=0,N_ELEMENTS(azimuths)-1 DO BEGIN
-;    print, "Az = ", azimuths[i], "Zen = ", zeniths[i], "DN = ", dns[i]
-;  ENDFOR
+  ;indices = WHERE(dns EQ 0)
+  ;print, "Indices = ", indices
+  ;print, "Azimuths = ", azimuths[indices]
+  ;print, "Zeniths = ", zeniths[indices]
+
+  FOR i=0,N_ELEMENTS(azimuths)-1 DO BEGIN
+    print, "Az = ", azimuths[i], "Zen = ", zeniths[i], "DN = ", dns[i]
+  ENDFOR
 
 
   offset = CALCULATE_OFFSET(dns, line_number)
@@ -107,16 +107,20 @@ END
 ;   the centre of the sky (a zenith of 90 degrees).
 ;
 ;-
-PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime, normalise=normalise
+PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns=dns, datetime=datetime, normalise=normalise, sun_azimuth=sun_azimuth, sun_zenith=sun_zenith
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
   
   line = ""
   
+  array_size = N_ELEMENTS(angle_files)*11
+  
+  print, "N ELEMENTS angle_files = ", N_ELEMENTS(angle_files)
+  
   ; Set up blank arrays ready for data to be inserted
-  azimuths = intarr((N_ELEMENTS(angle_files)-1)*11)
-  dns = fltarr((N_ELEMENTS(angle_files)-1)*11)
-  zeniths = fltarr((N_ELEMENTS(angle_files)-1)*11)
+  azimuths = intarr(array_size)
+  dns = fltarr(array_size)
+  zeniths = fltarr(array_size)
   
   ; For each angle.txt file
   FOR i=0, N_ELEMENTS(angle_files)-1 DO BEGIN
@@ -146,10 +150,10 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       datetime = double(0.0)
       
       reads, splitted[1], datetime, format='(C(CDI2, 1X, CMOI2, 1X, CYI4, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
-      print, "GET_SKY_DATA says datetime is: "
-      print, splitted[1]
-      print, "or (converted to julian)
-      print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
+      ;print, "GET_SKY_DATA says datetime is: "
+      ;print, splitted[1]
+      ;print, "or (converted to julian)
+      ;print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
       
       
       ; Get's a string of the entire line of the filename at the line number given in angles.txt
@@ -187,6 +191,8 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       j = j + 1
     ENDWHILE
     
+    print, "J = ", j
+    
     end_of_loop:
     FREE_LUN, lun
   ENDFOR
@@ -199,6 +205,9 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
     dns = float(dns) / MAX(dns)
   ENDIF
   
+  sun_index = WHERE(dns EQ MAX(dns))
+  sun_azimuth = MEAN(azimuths[sun_index])
+  sun_zenith = MEAN(zeniths[sun_index])
   
   
   ; Close all files
