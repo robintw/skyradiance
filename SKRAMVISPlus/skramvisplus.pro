@@ -6,7 +6,7 @@
 @SHOW_SKY_IMAGE
 @GET_AOT_DATA
 @SKY_RADIANCE_MODEL
-@MATCH
+@GET_CIMEL_DATA
  
 
 PRO SET_BROWSED_TEXT, infoptr
@@ -68,8 +68,6 @@ FUNCTION CALCULATE_RMSE, sun_azimuth, sun_zenith, dgratio, aot, measured_azimuth
     
     difference = measured_dns - small_modelled_array
     
-    print, difference
-    
     sq_difference = difference^2
     
     mean_sq_difference = MEAN(sq_difference, /NAN)
@@ -98,7 +96,7 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   print, "DGRatio is ", dgratio
   
-  aot = GET_AOT_DATA(info.microtops_file, wavelengths_array[info.list_index], datetime)
+  aot = GET_CIMEL_DATA(info.microtops_file, wavelengths_array[info.list_index], datetime)
   WIDGET_CONTROL, info.label_AOT, SET_VALUE=STRCOMPRESS(string(aot), /REMOVE_ALL)
   
   ; Set the plot window to be the right window
