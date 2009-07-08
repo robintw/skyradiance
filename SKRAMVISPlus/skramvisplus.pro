@@ -4,6 +4,9 @@
 @MAP_PLOT_DATA
 @POLAR_SURFACE_PLOT
 @SHOW_SKY_IMAGE
+@GET_AOT_DATA
+@SKY_RADIANCE_MODEL
+@MATCH
  
 
 PRO SET_BROWSED_TEXT, infoptr
@@ -18,7 +21,7 @@ PRO SET_BROWSED_TEXT, infoptr
   *infoptr = info
 END
 
-PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map=map
+PRO GET_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, azimuths=azimuths, zeniths=zeniths, values=values, title=title_string
   k_array = [ 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15 ]
   kt_array = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85 ]
   
@@ -30,7 +33,14 @@ PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map
   
   RUN_SKY_RADIANCE_MODEL, k_array[k_nearest_index], kt_array[kt_nearest_index], sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
   
-  title_string = "Modelled Sky: k = " + string(k_array[k_nearest_index]) + " kt = " + string(kt_array[kt_nearest_index])
+  title_string = "Modelled Sky: k = " + STRCOMPRESS(string(k_array[k_nearest_index]), /REMOVE_ALL) + " kt = " + STRCOMPRESS(string(kt_array[kt_nearest_index]), /REMOVE_ALL)
+END
+
+PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map=map
+  print, "In Show Model Data. DGRatio = ", dgratio
+  robin = dgratio
+  print, "Robin = ", robin
+  GET_MODEL_DATA, sun_azimuth, sun_zenith, robin, aot, azimuths=azimuths, zeniths=zeniths, values=values, title=title_string
   
   if KEYWORD_SET(surface) then begin
     SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
@@ -38,6 +48,37 @@ PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map
   endif else if keyword_set(map) then begin
     MAP_PLOT_DATA, azimuths, zeniths, values, title_string
   endif
+END
+
+FUNCTION CALCULATE_RMSE, sun_azimuth, sun_zenith, dgratio, aot, measured_azimuths, measured_zeniths, measured_dns
+    GET_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, azimuths=modelled_azimuths, zeniths=modelled_zeniths, values=modelled_values
+    
+    small_modelled_array = fltarr(N_ELEMENTS(measured_dns))
+    
+    FOR i=0, N_ELEMENTS(measured_dns)-1 DO BEGIN
+      current_az = measured_azimuths[i]
+      current_zen = measured_zeniths[i]
+      
+      modelled_array_index = (90 * current_az) + current_zen
+      
+      small_modelled_array[i] = modelled_values[modelled_array_index]
+    ENDFOR
+        
+    ;POLAR_SURFACE_PLOT, measured_azimuths, measured_zeniths, small_modelled_array
+    
+    difference = measured_dns - small_modelled_array
+    
+    print, difference
+    
+    sq_difference = difference^2
+    
+    mean_sq_difference = MEAN(sq_difference, /NAN)
+    
+    rmse = sqrt(mean_sq_difference)
+    
+    print, "RMSE = ", rmse
+    
+    return, rmse
 END
 
 PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
@@ -53,10 +94,12 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   ; Get the Diffuse:Global ratio and set put it into the label widget
   dgratio = GET_D_TO_G_RATIO(datetime, info.sunshine_file)
-  WIDGET_CONTROL, info.label_dgratio, SET_VALUE=string(dgratio)
+  WIDGET_CONTROL, info.label_dgratio, SET_VALUE=STRCOMPRESS(string(dgratio), /REMOVE_ALL)
+  
+  print, "DGRatio is ", dgratio
   
   aot = GET_AOT_DATA(info.microtops_file, wavelengths_array[info.list_index], datetime)
-  WIDGET_CONTROL, info.label_AOT, SET_VALUE=string(aot)
+  WIDGET_CONTROL, info.label_AOT, SET_VALUE=STRCOMPRESS(string(aot), /REMOVE_ALL)
   
   ; Set the plot window to be the right window
   wset, info.win_measured_id
@@ -67,20 +110,27 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
     title = "Sky Radiance Distribution: " + FILE_BASENAME(info.dirname) + " " + time_string + " " + wavelengths_array[info.list_index] + "nm"
     MAP_PLOT_DATA, azimuths, zeniths, dns, title
     wset, info.win_modelled_id
-    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, /MAP
+    SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, /SURFACE
   ENDIF ELSE IF keyword_set(surface) THEN BEGIN
     POLAR_SURFACE_PLOT, azimuths, zeniths, dns
     wset, info.win_modelled_id
+    print, "About to show model data. DGRatio is ", dgratio
     SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, /SURFACE
   ENDIF
   
-  WIDGET_CONTROL, info.label_time, SET_VALUE=STRTRIM(time_string)
+  WIDGET_CONTROL, info.label_time, SET_VALUE=STRCOMPRESS(time_string, /REMOVE_ALL)
   
   ; Erase the previous image
   wset, info.win_image_id
   erase
   
   SHOW_SKY_IMAGE, datetime, info.image_dir  
+  
+  print, "Zeniths below"
+  print, zeniths
+  
+  rmse = CALCULATE_RMSE(sun_azimuth, sun_zenith, dgratio, aot, azimuths, zeniths, dns)
+  WIDGET_CONTROL, info.label_rmse, SET_VALUE=STRCOMPRESS(string(rmse), /REMOVE_ALL)
 END
 
 
@@ -134,14 +184,14 @@ PRO SKRAMVISPlus
         button_surface = widget_button(button_base, value="Show Surface Plot", uvalue="SurfaceButton")
     
     metadata_base = widget_base(left_side_base, row=4, /GRID_LAYOUT)
-      label_metadata = widget_label(metadata_base, value="Metadata:")
-      label_nothing = widget_label(metadata_base, value="")
       label_label_for_time = widget_label(metadata_base, value="Time:")
       label_time = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
       label_label_for_dgratio = widget_label(metadata_base, value="D:G ratio:")
       label_dgratio = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
       label_label_for_AOT = widget_label(metadata_base, value="AOT:")
       label_AOT = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
+      label_label_for_RMSE = widget_label(metadata_base, value="RMSE:")
+      label_RMSE = widget_label(metadata_base, value="", /DYNAMIC_RESIZE)
       
   
     draw_image = widget_draw(left_side_base, xsize=600, ysize=450)
@@ -166,6 +216,7 @@ PRO SKRAMVISPlus
           label_dgratio:label_dgratio,$
           label_time:label_time,$
           label_AOT:label_AOT,$
+          label_RMSE:label_RMSE,$
           last_dir_path:"C:\",$
           image_dir:"",$
           sunshine_file:"",$

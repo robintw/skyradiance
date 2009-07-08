@@ -30,8 +30,8 @@ PRO BRUNGER_HOOPER_MODEL, a0, a1, a2, a3, azimuths=return_azimuths, zeniths=retu
   my_zeniths = intarr(360*90)
   my_values = dblarr(360*90)
 
-  FOR phi=0, 360-1 DO BEGIN
-    FOR theta=0, 90-1 DO BEGIN
+  FOR phi=0, 360L-1 DO BEGIN
+    FOR theta=0, 90L-1 DO BEGIN
       ; Convert the current phi and theta to radians
       view_phi = phi*!DTOR
       view_theta = theta*!DTOR

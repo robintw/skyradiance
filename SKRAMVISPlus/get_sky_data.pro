@@ -62,6 +62,7 @@ FUNCTION CALIBRATE_DATA, azimuths, zeniths, dns, line_number
 
   offset = CALCULATE_OFFSET(dns, line_number)
   
+  ; If it's wavelength 870nm
   IF line_number GE 1523 THEN offset = 115
   
   print, "Dark Current is ", offset
@@ -198,7 +199,7 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   ENDFOR
   
   
-  dns = CALIBRATE_DATA(azimuths, zeniths, dns, line_number)
+  ;dns = CALIBRATE_DATA(azimuths, zeniths, dns, line_number)
   
   IF KEYWORD_SET(normalise) THEN BEGIN
     ; Normalise data
