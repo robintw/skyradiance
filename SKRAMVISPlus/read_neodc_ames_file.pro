@@ -38,6 +38,10 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
   rdate = 0.0
   
   readf, lun, nlhead, ffi
+  
+  ; If the FFI doesn't equal 1001 (the only format NEODC uses) then raise an error
+  if ffi NE 1001 THEN junk = DIALOG_MESSAGE("The selected file is not in the NEODC Ames format. Please restart and select another file", /ERROR)
+  
   readf, lun, oname
   readf, lun, org
   readf, lun, sname
