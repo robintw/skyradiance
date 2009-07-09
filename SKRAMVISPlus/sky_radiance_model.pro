@@ -153,7 +153,65 @@ PRO RUN_SKY_RADIANCE_MODEL, k, kt, sun_theta, sun_phi, azimuths=azimuths, zenith
   
 END
 
-PRO SKY_RADIANCE_MODEL
-  RUN_SKY_RADIANCE_MODEL, 0.25, 0.75, 30, 180, azimuths=azimuths, zeniths=zeniths, values=values
-  SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR)
+PRO GET_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, azimuths=azimuths, zeniths=zeniths, values=values, title=title_string
+  k_array = [ 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15 ]
+  kt_array = [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85 ]
+  
+  distance_away = MIN(ABS(k_array - dgratio), k_nearest_index)
+  distance_away = MIN(ABS(kt_array - (1 - aot)), kt_nearest_index)
+  
+  print, "SUN ZENITH = ", sun_zenith
+  print, "SUN AZIMUTH = ", sun_azimuth
+  
+  RUN_SKY_RADIANCE_MODEL, k_array[k_nearest_index], kt_array[kt_nearest_index], sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
+  
+  title_string = "Modelled Sky: k = " + STRCOMPRESS(string(k_array[k_nearest_index]), /REMOVE_ALL) + " kt = " + STRCOMPRESS(string(kt_array[kt_nearest_index]), /REMOVE_ALL)
 END
+
+PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map=map
+  print, "In Show Model Data. DGRatio = ", dgratio
+  robin = dgratio
+  print, "Robin = ", robin
+  GET_MODEL_DATA, sun_azimuth, sun_zenith, robin, aot, azimuths=azimuths, zeniths=zeniths, values=values, title=title_string
+  
+  if KEYWORD_SET(surface) then begin
+    SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
+    XYOUTS, 0.5, 0.9, title_string, /NORMAL, ALIGNMENT=0.5, color=FSC_Color("black")
+  endif else if keyword_set(map) then begin
+    MAP_PLOT_DATA, azimuths, zeniths, values, title_string
+  endif
+END
+
+FUNCTION CALCULATE_RMSE, sun_azimuth, sun_zenith, dgratio, aot, measured_azimuths, measured_zeniths, measured_dns
+    ; Run the model with the parameters of D:G ratio and AOT
+    GET_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, azimuths=modelled_azimuths, zeniths=modelled_zeniths, values=modelled_values
+    
+    small_modelled_array = fltarr(N_ELEMENTS(measured_dns))
+    
+    ; Generalise the modelled values into just values for the locations at which measurements were taken
+    FOR i=0, N_ELEMENTS(measured_dns)-1 DO BEGIN
+      current_az = measured_azimuths[i]
+      current_zen = measured_zeniths[i]
+      
+      modelled_array_index = (90 * current_az) + current_zen
+      
+      small_modelled_array[i] = modelled_values[modelled_array_index]
+    ENDFOR
+        
+    ;POLAR_SURFACE_PLOT, measured_azimuths, measured_zeniths, small_modelled_array
+    
+    ; Calculate the RMSE value
+    difference = measured_dns - small_modelled_array
+    sq_difference = difference^2
+    mean_sq_difference = MEAN(sq_difference, /NAN)
+    rmse = sqrt(mean_sq_difference)
+    
+    return, rmse
+END
+
+; This is a test procedure which allows this file to be run independently, producing the output of the model
+; for whatever parameters are given below. Very handy for testing!
+;PRO SKY_RADIANCE_MODEL
+  ;RUN_SKY_RADIANCE_MODEL, 0.25, 0.75, 30, 180, azimuths=azimuths, zeniths=zeniths, values=values
+  ;SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR)
+;END
