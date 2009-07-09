@@ -1,4 +1,27 @@
+;+
+; NAME:
+; READ_NEODC_AMES_FILE 
+;
+; PURPOSE:
+; This routine reads data from any NEODC Ames formatted file. The only condition is that the file must have a date
+; as it's independent variable.
+; 
+; CALLING SEQUENCE:
+;
+; READ_NEODC_AMES_FILE, filename, header=header, indep=indep, primary=primary
+;
+; INPUTS:
+; Filename: The filepath of the file to read
+; 
+; OUTPUTS:
+; Header: A structure containing the details from the Ames file header, such as PI, date, location etc.
+; 
+; Indep: A structure containing details of the independent variable, including description and values
+; 
+; Primary: A structure containing details of the primary variables, including names and values
+;-
 PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=out_primary
+  ; Open the file
   openr, lun, filename, /GET_LUN
    
   ;; READ HEADER SECTION 
@@ -23,6 +46,7 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
   
   readf, lun, date, rdate, format='(C(CYI4, 1X, CMOI2, 1X, CDI2), C(1X, CYI4, 1X, CMOI2, 1X, CDI2))'
   
+  ; Put the header data into the structure
   header = {nlhead:nlhead,$
             ffi:ffi,$
             oname:oname,$
@@ -33,7 +57,6 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
             nvol:nvol,$
             date:date,$
             rdate:rdate}
-  
 
   
   ;; READ INDEP VARIABLE INFO SECTION
@@ -105,9 +128,10 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
     ; Get the date out of it and read that into a float
     date_string = strmid(line_string, 0, 20)
     
+    ; Choose which format string to use depending on whether there is one or two spaces between the 
+    ; date and time in the file.
     format_string_one = "(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))"
     format_string_two = "(C(CYI4, 1X, CMOI2, 1X, CDI2, 2X, CHI2, 1X, CMI2, 1X, CSI2))"
-   
     if STRMID(date_string, 11, 1) EQ " " THEN format_string = format_string_two ELSE format_string = format_string_one
     
     reads, date_string, x, format=format_string
@@ -122,6 +146,7 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
     i++
   ENDWHILE
   
+  ; Resize the arrays to only contain the actual data (no blanks at the end)
   indep_var = indep_var[0:i-1]
   dep_var = dep_var[0:i-1, *]
 
@@ -129,6 +154,7 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
   indep = create_struct(indep, 'values', indep_var)
   primary = create_struct(primary, 'values', dep_var)
   
+  ; Return the values
   out_header = header
   out_indep = indep
   out_primary = primary

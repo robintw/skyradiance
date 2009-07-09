@@ -16,64 +16,68 @@
 ;
 ;-
 FUNCTION READ_NUMBERED_LINE, filename, line_num
+  ; Open the file
   openr, lun, filename, /GET_LUN
   
+  ; Loop through to the correct line number and read the data into a string
   FOR i=0, line_num DO BEGIN
     readf, lun, line, format="(a)"
   ENDFOR
   
+  ; Close the file
   FREE_LUN, lun
   
+  ; Return the data as a string
   return, line
 END
 
+; This function calculates the offset due to the dark current. At the moment it is hardcoded to work
+; only on the NCAVEO PC at the University of Southampton.
 FUNCTION CALCULATE_OFFSET, dns, line_number
+  ; Get a list of all the dark spectra files
   dark_files = FILE_SEARCH("D:\UserData\Robin Wilson\AlteredData\ncaveo\rad\dark", "*spectrum*")
   
   dark_values = fltarr(N_ELEMENTS(dark_files))
   
   ; For each spectrum file
   FOR i=0, N_ELEMENTS(dark_files)-1 DO BEGIN
+    ; Read the right line as a float
     line_string = READ_NUMBERED_LINE(dark_files[i], line_number)
     reads, line_string, dn, format="(f)"
     
     dark_values[i] = dn
   ENDFOR
   
+  ; Calculate the dark value from the array of dark values measured at different times.
+  ; At the moment the minimum value is taken, but this could easily be changed to the mean, max
+  ; or any other function.
   dark_value = MIN(dark_values)
   
   return, dark_value
 END
 
+; This function calibrates the data which is obtained by GET_SKY_DATA
 FUNCTION CALIBRATE_DATA, azimuths, zeniths, dns, line_number
-  print, "Original DNs info:"
-  print, "MAX = ", MAX(dns)
-  print, "MIN = ", MIN(dns)
-  
+  ; The commented code below is used for testing that there are no zeroes in the array
+  ; This has been because of problems in the past with arrays being larger than they need to be
+  ; It should not need to be used, but has been left in here in case
   ;indices = WHERE(dns EQ 0)
   ;print, "Indices = ", indices
   ;print, "Azimuths = ", azimuths[indices]
   ;print, "Zeniths = ", zeniths[indices]
 
-  FOR i=0,N_ELEMENTS(azimuths)-1 DO BEGIN
-    print, "Az = ", azimuths[i], "Zen = ", zeniths[i], "DN = ", dns[i]
-  ENDFOR
-
-
+  ; Calculate the offset for the calibration, due to the dark current
   offset = CALCULATE_OFFSET(dns, line_number)
   
   ; If it's wavelength 870nm
   IF line_number GE 1523 THEN offset = 115
   
-  print, "Dark Current is ", offset
-  
+  ; Manually set the gain to be 1 at the moment. To get actual gain from the calibration spectra files
+  ; just replace the line below with a call to a function to get the right gain information
   gain = 1
   
+  ; Perform the calibration using the standard formula
   calibrated_dns = (dns - offset) * gain
-  
-  print, "Corrected DNs info"
-  print, "MAX = ", MAX(calibrated_dns)
-  print, "MIN = ", MIN(calibrated_dns)
   
   return, calibrated_dns
 END
@@ -112,13 +116,12 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
   ; Get a list of all the angle.txt files under the specified directory
   angle_files = FILE_SEARCH(dir_path, "angles.txt")
   
+  ; Set up a blank string variable to read lines into
   line = ""
   
+  ; Set up blank arrays ready for data to be inserted
   array_size = N_ELEMENTS(angle_files)*11
   
-  print, "N ELEMENTS angle_files = ", N_ELEMENTS(angle_files)
-  
-  ; Set up blank arrays ready for data to be inserted
   azimuths = intarr(array_size)
   dns = fltarr(array_size)
   zeniths = fltarr(array_size)
@@ -133,6 +136,7 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
     folders_string = FILE_DIRNAME(angle_files[i])
     azimuth = FILE_BASENAME(folders_string)
     
+    ; If the azimuth isn't a 3 digit number then skip to the end of the loop
     if STREGEX(azimuth, "[1234567890]{3}", /BOOLEAN) eq 0 THEN GOTO, end_of_loop
     
     ; Initialise the j loop variable, which is incremented for every line read from the file
@@ -143,21 +147,15 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ; Read the next line from the file and split in by ;'s
       readf, lun, line, format="(a)"
       splitted = STRSPLIT(line, ";", /EXTRACT)
-      
-      ;print, FILE_BASENAME(angle_files[i])
-      
+  
+      ; Extract the spectrum filename
       spectrum_filename = FILE_DIRNAME(angle_files[i]) + "\" + splitted[0]
       
-      datetime = double(0.0)
-      
+      ; Initialise the datetime variable and then read in the datetime data to a float (stored as julian datetime)
+      datetime = double(0.0
       reads, splitted[1], datetime, format='(C(CDI2, 1X, CMOI2, 1X, CYI4, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
-      ;print, "GET_SKY_DATA says datetime is: "
-      ;print, splitted[1]
-      ;print, "or (converted to julian)
-      ;print, datetime, FORMAT='(C(CYI4, 1X, CMOI2, 1X, CDI2, 1X, CHI2, 1X, CMI2, 1X, CSI2))'
       
-      
-      ; Get's a string of the entire line of the filename at the line number given in angles.txt
+      ; Gets a string of the entire line of the filename at the line number given in angles.txt
       line_string = READ_NUMBERED_LINE(spectrum_filename, line_number)
       
       ; Read the value in from that string into the float variable dn
@@ -166,6 +164,7 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       ; Calculate which index in the array to put it in
       array_index = (11*i) + j
       
+      ; Get the zenith from the angle_file
       zenith = FLOAT(splitted[2])
       
       ; Calculate the azimuth given that the zenith scanning goes all the way from 0 to 180 degrees    
@@ -177,12 +176,11 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
         real_zenith = zenith
       ENDELSE
       
-      ; Reverse zenith's to get it to plot correctly
+      ; Reverse zenith's to get it to plot correctly (otherwise it would plot inside out!)
       real_zenith = 90 - real_zenith
       
-       ; Corrects the data as the instrument was aligned S-N rather than N-S. TODO: Check with Ted!
+       ; Corrects the data as the instrument was aligned S-N rather than N-S.
       IF real_azimuth LT 180 THEN real_azimuth = real_azimuth + 180 ELSE real_azimuth = real_azimuth - 180
-     
       
       ; Insert the values into the arrays
       azimuths[array_index] = real_azimuth
@@ -192,23 +190,24 @@ PRO GET_SKY_DATA, dir_path, line_number, azimuths=azimuths, zeniths=zeniths, dns
       j = j + 1
     ENDWHILE
     
-    print, "J = ", j
-    
     end_of_loop:
     FREE_LUN, lun
   ENDFOR
   
   
+  ; The commented line below will perform the calibration of the data. This leads to problems with
+  ; negative values at the moment, so it is not in use.
   ;dns = CALIBRATE_DATA(azimuths, zeniths, dns, line_number)
   
+  ; If the normalise keyword has been set then normalise the data by dividing every value by the max value
   IF KEYWORD_SET(normalise) THEN BEGIN
-    ; Normalise data
     dns = float(dns) / MAX(dns)
   ENDIF
   
-  sun_index = WHERE(dns EQ MAX(dns))
-  sun_azimuth = MEAN(azimuths[sun_index])
-  sun_zenith = MEAN(zeniths[sun_index])
+  ; Calculate the sun azimuth and zenith from the data (takes the mean of the maximum azimuths and zeniths)
+  sun_array_index = WHERE(dns EQ MAX(dns))
+  sun_azimuth = MEAN(azimuths[sun_array_index])
+  sun_zenith = MEAN(zeniths[sun_array_index])
   
   
   ; Close all files

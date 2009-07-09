@@ -1,28 +1,23 @@
+@READ_NEODC_AMES_FILE
+
+; This function reads in the AOT data from a Cimel file in NEODC Ames format given
+; a filename, wavelength and datetime
 FUNCTION GET_CIMEL_DATA, filename, given_wavelength, given_datetime
+  ; Read the NEODC Ames file
   READ_NEODC_AMES_FILE, filename, header=header, indep=indep, primary=primary
   
+  ; Extract the datetimes from the independent variables
   datetimes = indep.values
   
-  wavelengths = [1020, 870, 675, 500, 440, 380, 340]
-  
   ; Find closest wavelength
+  wavelengths = [1020, 870, 675, 500, 440, 380, 340]
   distance_away = MIN(ABS(wavelengths - given_wavelength), nearest_index)
   
-  array_index = nearest_index
-  
+  ; Get the AOT data out of the right variable (the AOT data starts from the first variable)
+  array_index = nearest_index 
   AOTs = primary.values[*, array_index]
   
-  print, AOTs
-  
-  print, "IN CIMEL ROUTINE"
-  print, "Given Datetime = "
-  print, given_datetime, format="(C())"
- 
-  
+  ; Find the closest AOT value to the datetime which was given, and return it
   distance_away = MIN(ABS(datetimes - given_datetime), nearest_index)
-  
-  print, "Found Datetime = "
-  print, datetimes[nearest_index], format="(C())"
-  
   return, AOTs[nearest_index]
 END

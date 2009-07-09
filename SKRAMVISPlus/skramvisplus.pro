@@ -1,5 +1,6 @@
 @GET_SUNSHINE_DATA
 @GET_D_TO_G_RATIO
+@GET_MICROTOPS_DATA
 @GET_SKY_DATA
 @MAP_PLOT_DATA
 @POLAR_SURFACE_PLOT
@@ -51,6 +52,11 @@ PRO VISUALISE_DATA, infoptr, MAP=MAP, SURFACE=SURFACE
   
   ; Get the AOT data and put it into the label widget
   aot = GET_CIMEL_DATA(info.microtops_file, wavelengths_array[info.list_index], datetime)
+  
+  ; If microtops data is to be used instead then uncomment the following line
+  ; and remember to change the title of the "Select Cimel datafile" dialog box!
+  ;aot = GET_MICROTOPS_DATA(info.microtops_file, wavelengths_array[info.list_index], datetime)
+  
   WIDGET_CONTROL, info.label_AOT, SET_VALUE=STRCOMPRESS(string(aot, FORMAT="(f5.3)"), /REMOVE_ALL)
   
   ; Set the plot window to be the window for plotting the measured data
@@ -167,8 +173,10 @@ PRO SKRAMVISPlus
   
     draw_image = widget_draw(left_side_base, xsize=600, ysize=450)
   
-    copyright_base = widget_base(left_side_base, row=1)
-      label_copyright = widget_label(copyright_base, value="Created by Robin Wilson, University of Southampton, 2009") 
+    copyright_base = widget_base(left_side_base, row=2)
+      label_version = widget_label(copyright_base, value="Version 1.0") 
+      label_copyright = widget_label(copyright_base, value="Created by Robin Wilson, University of Southampton, 2009")
+      
   
   draw_base = widget_base(base, row=2)
     draw_model = widget_draw(draw_base, xsize=600, ysize=450)

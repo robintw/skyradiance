@@ -36,10 +36,9 @@ PRO BRUNGER_HOOPER_MODEL, a0, a1, a2, a3, azimuths=return_azimuths, zeniths=retu
       view_phi = phi*!DTOR
       view_theta = theta*!DTOR
       
+      ; Calculate the value according to the model
       value = CALCULATE_SKY_VALUE(a0, a1, a2, a3, view_theta, view_phi, sun_theta, sun_phi)
-      
-      ;value = double(1)
-      
+
       array_index = long((90*phi) + theta)
       
       ; Put the value into the array
@@ -50,8 +49,10 @@ PRO BRUNGER_HOOPER_MODEL, a0, a1, a2, a3, azimuths=return_azimuths, zeniths=retu
     ENDFOR
   ENDFOR
   
+  ; Normalise the values with regard to the maximum
   my_values = my_values / MAX(my_values)
   
+  ; Return the values
   return_values = my_values
   return_azimuths = my_azimuths
   return_zeniths = my_zeniths
@@ -145,10 +146,6 @@ PRO RUN_SKY_RADIANCE_MODEL, k, kt, sun_theta, sun_phi, azimuths=azimuths, zenith
   
   params = parameters[k_index, kt_index, *]
   
-  print, "IN RUN_SKY_RADIANCE_MODEL"
-  print, "Sun Theta = ", sun_theta
-  print, "Sun Phi = ", sun_phi
-  
   BRUNGER_HOOPER_MODEL, params[0], params[1], params[2], params[3], azimuths=azimuths, zeniths=zeniths, values=values, sun_theta, sun_phi 
   
 END
@@ -160,19 +157,13 @@ PRO GET_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, azimuths=azimuths, ze
   distance_away = MIN(ABS(k_array - dgratio), k_nearest_index)
   distance_away = MIN(ABS(kt_array - (1 - aot)), kt_nearest_index)
   
-  print, "SUN ZENITH = ", sun_zenith
-  print, "SUN AZIMUTH = ", sun_azimuth
-  
   RUN_SKY_RADIANCE_MODEL, k_array[k_nearest_index], kt_array[kt_nearest_index], sun_zenith, sun_azimuth, azimuths=azimuths, zeniths=zeniths, values=values
   
   title_string = "Modelled Sky: k = " + STRCOMPRESS(string(k_array[k_nearest_index]), /REMOVE_ALL) + " kt = " + STRCOMPRESS(string(kt_array[kt_nearest_index]), /REMOVE_ALL)
 END
 
 PRO SHOW_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, surface=surface, map=map
-  print, "In Show Model Data. DGRatio = ", dgratio
-  robin = dgratio
-  print, "Robin = ", robin
-  GET_MODEL_DATA, sun_azimuth, sun_zenith, robin, aot, azimuths=azimuths, zeniths=zeniths, values=values, title=title_string
+  GET_MODEL_DATA, sun_azimuth, sun_zenith, dgratio, aot, azimuths=azimuths, zeniths=zeniths, values=values, title=title_string
   
   if KEYWORD_SET(surface) then begin
     SURFACE, POLAR_SURFACE(values, zeniths*!DTOR, azimuths*!DTOR), color=FSC_COLOR("black")
