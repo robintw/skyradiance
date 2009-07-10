@@ -4,7 +4,10 @@
 ; a filename, wavelength and datetime
 FUNCTION GET_CIMEL_DATA, filename, given_wavelength, given_datetime
   ; Read the NEODC Ames file
-  READ_NEODC_AMES_FILE, filename, header=header, indep=indep, primary=primary
+  READ_NEODC_AMES_FILE, filename, header=header, indep=indep, primary=primary, error=error
+  
+  ; Check the error code returned and if it's non-zero then return an AOT of 0
+  if error ne 0 then return, 0
   
   ; Extract the datetimes from the independent variables
   datetimes = indep.values

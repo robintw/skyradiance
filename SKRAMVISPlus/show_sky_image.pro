@@ -13,6 +13,14 @@ PRO DISPLAY_IMAGE, image_path
 END
 
 PRO SHOW_SKY_IMAGE, given_datetime, directory
+  catch, error_status
+  if error_status ne 0 then begin
+    ;help, /LAST_MESSAGE, output=errtext
+    result = ERROR_MESSAGE("The selected directory (" + directory + ") does not contain the sky images and timestamp files. Please restart and choose another directory")
+    result = ERROR_MESSAGE()
+    return
+  endif
+
   ; Read the timestamp file in the given directory
   openr, lun, FILEPATH("timestamp_sky_conditions.txt", ROOT_DIR=directory), /GET_LUN
   

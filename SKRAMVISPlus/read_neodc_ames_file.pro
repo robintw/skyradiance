@@ -20,7 +20,18 @@
 ; 
 ; Primary: A structure containing details of the primary variables, including names and values
 ;-
-PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=out_primary
+PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=out_primary, error=error
+  error = 0
+  
+  catch, error_status
+  if error_status ne 0 then begin
+    help, /LAST_MESSAGE, output=errtext
+    result = ERROR_MESSAGE("The selected file (" + filename + ") is not in the NEODC Ames format. Please restart and select another file. The actual error message is below:" + String(13B) + errtext[0])
+    result = ERROR_MESSAGE()
+    error = error_status
+    return
+  endif
+
   ; Open the file
   openr, lun, filename, /GET_LUN
    
@@ -40,7 +51,11 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
   readf, lun, nlhead, ffi
   
   ; If the FFI doesn't equal 1001 (the only format NEODC uses) then raise an error
-  if ffi NE 1001 THEN junk = DIALOG_MESSAGE("The selected file is not in the NEODC Ames format. Please restart and select another file", /ERROR)
+  if ffi NE 1001 THEN BEGIN
+    ;junk = ERROR_MESSAGE("The selected file is not in the NEODC Ames format. Please restart and select another file", /ERROR)
+    MESSAGE, "The selected file (" + filename + ") is not in the NEODC Ames format. Please restart and select another file"
+    return
+  endif
   
   readf, lun, oname
   readf, lun, org
