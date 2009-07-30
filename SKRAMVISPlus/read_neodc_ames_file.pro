@@ -177,4 +177,6 @@ PRO READ_NEODC_AMES_FILE, filename, header=out_header, indep=out_indep, primary=
   out_header = header
   out_indep = indep
   out_primary = primary
+  
+  FREE_LUN, lun
 END
