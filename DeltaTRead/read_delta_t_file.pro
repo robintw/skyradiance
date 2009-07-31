@@ -4,7 +4,7 @@ FUNCTION STRIP_QUOTES, string
   return, new_string
 END
 
-PRO READ_DELTA_T_FILE, filename, start_year, end_year, header=header, ch_header=ch_header, datetimes=datetimes, data=data
+PRO READ_DELTA_T_FILE, filename, year, header=header, ch_header=ch_header, datetimes=datetimes, data=data
   ; Open the file
   openr, lun, filename, /GET_LUN
   
@@ -21,11 +21,11 @@ PRO READ_DELTA_T_FILE, filename, start_year, end_year, header=header, ch_header=
   readf, lun, start_date_string
   readf, lun, end_date_string
   
-  start_date_string = STRIP_QUOTES(start_date_string) + start_year
+  start_date_string = STRIP_QUOTES(start_date_string) + year
   
   reads, start_date_string, start_date, format="(C(CDI2, X, CMOI2, X, CHI2, X, CMI2, X, CSI2, X, CYI4))"
   
-  end_date_string = STRIP_QUOTES(end_date_string) + end_year
+  end_date_string = STRIP_QUOTES(end_date_string) + year
   
   reads, end_date_string, end_date, format="(C(CDI2, X, CMOI2, X, CHI2, X, CMI2, X, CSI2, X, CYI4))"
   
@@ -62,7 +62,8 @@ PRO READ_DELTA_T_FILE, filename, start_year, end_year, header=header, ch_header=
   split_min_values = STRSPLIT(min_values_string, ",", /EXTRACT)
   split_max_values = STRSPLIT(max_values_string, ",", /EXTRACT)
   
-  num_channels = (N_ELEMENTS(split_ch_numbers) / 2) - 1
+  ; The second comma separated value has the number of channels in it
+  num_channels = split_ch_numbers[1]
   
   ch_numbers = intarr(num_channels)
   sensor_codes = strarr(num_channels)
@@ -94,8 +95,10 @@ PRO READ_DELTA_T_FILE, filename, start_year, end_year, header=header, ch_header=
                min_values:min_values,$
                max_values:max_values}
   
-  data = dblarr(10000, num_channels)
+  ;data = dblarr(10000, num_channels)
   datetimes = dblarr(10000)
+  
+  data = replicate(!VALUES.D_NAN, 1000, num_channels)
   
   i = 0
   
@@ -106,8 +109,12 @@ PRO READ_DELTA_T_FILE, filename, start_year, end_year, header=header, ch_header=
     
     split_line = STRSPLIT(line, ",", /EXTRACT)
     
+    channels_in_line = split_line[1]
+    
+    ; Initialise the datetime variable
     datetime = double(0)
     
+    ; Read from the split line into the datetime variable
     reads, STRIP_QUOTES(split_line[0]), datetime, format="(C(CDI2, X, CMOI2, X, CHI2, X, CMI2, X, CSI2))"
     
     split_line = split_line[3:N_ELEMENTS(split_line)-1]
@@ -117,7 +124,7 @@ PRO READ_DELTA_T_FILE, filename, start_year, end_year, header=header, ch_header=
     print, split_line[data_indices]
     
     datetimes[i] = datetime
-    data[i, *] = split_line[data_indices]
+    data[i, 0:channels_in_line-1] = split_line[data_indices]
     
     i++
   ENDWHILE

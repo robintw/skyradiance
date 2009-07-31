@@ -24,9 +24,9 @@ PRO GET_SPECTRAL_DG_DATA, dir_path, prefix, wavelengths=wavelengths, data=data, 
 END
 
 PRO SPECTRALDGREADER
-  wavelength = 750
+  wavelength = 540
 
-  GET_SPECTRAL_DG_DATA, "D:\UserData\Robin Wilson\spectra\actual spectra", "outside_test", wavelengths=wavelengths, data=data, datetimes=datetimes
+  GET_SPECTRAL_DG_DATA, "D:\UserData\Robin Wilson\Spectral Sunshine Sensor\31-07-09-outside", "outside", wavelengths=wavelengths, data=data, datetimes=datetimes
   
   distance_away = MIN(ABS(wavelengths - wavelength), nearest_index)
   
