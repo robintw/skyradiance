@@ -84,9 +84,6 @@ PRO READ_DELTA_T_FILE, filename, year, header=header, ch_header=ch_header, datet
     max_values[index] = DOUBLE(split_max_values[i])
   ENDFOR
   
-  print, ch_numbers
-  print, min_values
-  
   ; Put the channel header data into a structure
   ch_header = {channel_numbers:ch_numbers,$
                sensor_codes:sensor_codes,$
@@ -121,7 +118,7 @@ PRO READ_DELTA_T_FILE, filename, year, header=header, ch_header=ch_header, datet
     
     data_indices = WHERE(STREGEX(split_line, """.""" , /BOOLEAN) EQ 0)
     
-    print, split_line[data_indices]
+    ;print, split_line[data_indices]
     
     datetimes[i] = datetime
     data[i, 0:channels_in_line-1] = split_line[data_indices]

@@ -34,4 +34,6 @@ PRO CREATE_ROI_CLASS_IMAGE
     roi_id = ROI_PERCENTILE_THRESHOLD(percentage, name, 2+i, fid=fid, dims=dims, pos=pos[i])
     roi_ids[i] = roi_id
   ENDFOR
+  
+  ;ENVI_DOIT, 'ENVI_ROI_TO_IMAGE_DOIT', class_values=replicate(long(1), N_ELEMENTS(pos)-1), FID=fid, ROI_IDS=roi_ids, /IN_MEMORY
 END
