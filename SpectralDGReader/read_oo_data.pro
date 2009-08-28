@@ -15,7 +15,9 @@ PRO READ_OO_DATA_FILE, filename, wavelengths=wavelengths, dns=dns, datetime=date
   
   date_line = ""
   
-  ; Read the next line in - which is in the following format "Date: 06-17-2006, 09:44:35"
+  ; Read the next line in - which is in the following format "Date: 06-17-2006, 09:44:35". This is correct for
+  ; SpectraSuite files, but not for OOIBase files. If this needs changing then change the format specifier below
+  ; (the crazy looking bit in red). Information on all the date format specifiers is available in the IDL help.
   readf, lun, date_line
   ; Just get the actual date bit of it
   datetime_string = strmid(date_line, 6)
