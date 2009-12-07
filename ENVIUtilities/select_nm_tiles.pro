@@ -25,10 +25,149 @@ FUNCTION INIT_GRIDTILES_ARRAY
   GridTiles[1, 2].x = "S"
   GridTiles[1, 2].y = "M"
   
+  GridTiles[1, 5].x = "N"
+  GridTiles[1, 5].y = "W"
   
+  GridTiles[1, 6].x = "N"
+  GridTiles[1, 6].y = "R"
+  
+  GridTiles[1, 7].x = "N"
+  GridTiles[1, 7].y = "M"
+  
+  GridTiles[1, 8].x = "N"
+  GridTiles[1, 8].y = "G"
+  
+  GridTiles[1, 9].x = "N"
+  GridTiles[1, 9].y = "B"
+  
+  ; Third column of diagram
+  GridTiles[2, 0].x = "S"
+  GridTiles[2, 0].y = "X"
+  
+  GridTiles[2, 1].x = "S"
+  GridTiles[2, 1].y = "S"
+  
+  GridTiles[2, 2].x = "S"
+  GridTiles[2, 2].y = "N"
+  
+  GridTiles[2, 3].x = "S"
+  GridTiles[2, 3].y = "H"
+  
+  GridTiles[2, 4].x = "S"
+  GridTiles[2, 4].y = "C"
+  
+  GridTiles[2, 5].x = "N"
+  GridTiles[2, 5].y = "X"
+  
+  GridTiles[2, 6].x = "N"
+  GridTiles[2, 6].y = "S"
+  
+  GridTiles[2, 7].x = "N"
+  GridTiles[2, 7].y = "N"
+  
+  GridTiles[2, 8].x = "N"
+  GridTiles[2, 8].y = "H"
+  
+  GridTiles[2, 9].x = "N"
+  GridTiles[2, 9].y = "C"
+  
+  ; 4th column
+  GridTiles[3, 0].x = "S"
+  GridTiles[3, 0].y = "Y"
+  
+  GridTiles[3, 1].x = "S"
+  GridTiles[3, 1].y = "T"
+  
+  GridTiles[3, 2].x = "S"
+  GridTiles[3, 2].y = "O"
+  
+  GridTiles[3, 3].x = "S"
+  GridTiles[3, 3].y = "J"
+  
+  GridTiles[3, 4].x = "S"
+  GridTiles[3, 4].y = "D"
+  
+  GridTiles[3, 5].x = "N"
+  GridTiles[3, 5].y = "Y"
+  
+  GridTiles[3, 6].x = "N"
+  GridTiles[3, 6].y = "T"
+  
+  GridTiles[3, 7].x = "N"
+  GridTiles[3, 7].y = "O"
+  
+  GridTiles[3, 8].x = "N"
+  GridTiles[3, 8].y = "J"
+  
+  GridTiles[3, 9].x = "N"
+  GridTiles[3, 9].y = "D"
+  
+  ; 5th column
+  GridTiles[4, 0].x = "S"
+  GridTiles[4, 0].y = "Z"
+  
+  GridTiles[4, 1].x = "S"
+  GridTiles[4, 1].y = "U"
+  
+  GridTiles[4, 2].x = "S"
+  GridTiles[4, 2].y = "P"
   
   GridTiles[4, 3].x = "S"
   GridTiles[4, 3].y = "K"
+
+  GridTiles[4, 4].x = "S"
+  GridTiles[4, 4].y = "E"
+  
+  GridTiles[4, 5].x = "N"
+  GridTiles[4, 5].y = "Z"
+  
+  GridTiles[4, 6].x = "N"
+  GridTiles[4, 6].y = "U"
+  
+  GridTiles[4, 8].x = "N"
+  GridTiles[4, 8].y = "K"
+  
+  ;6th column
+  GridTiles[5, 0].x = "T"
+  GridTiles[5, 0].y = "V"
+  
+  GridTiles[5, 1].x = "T"
+  GridTiles[5, 1].y = "Q"
+  
+  GridTiles[5, 2].x = "T"
+  GridTiles[5, 2].y = "L"
+  
+  GridTiles[5, 3].x = "T"
+  GridTiles[5, 3].y = "F"
+  
+  GridTiles[5, 4].x = "T"
+  GridTiles[5, 4].y = "A"
+  
+  ; 7th column
+  GridTiles[6, 1].x = "T"
+  GridTiles[6, 1].y = "R"
+  
+  GridTiles[6, 2].x = "T"
+  GridTiles[6, 2].y = "M"
+  
+  GridTiles[6, 3].x = "T"
+  GridTiles[6, 3].y = "G"
+  
+  ; Row at the top
+  GridTiles[4, 12].x = "H"
+  GridTiles[4, 12].y = "P"
+  
+  GridTiles[3, 11].x = "H"
+  GridTiles[3, 11].y = "T"
+  
+  GridTiles[4, 11].x = "H"
+  GridTiles[4, 11].y = "U"
+  
+  GridTiles[3, 10].x = "H"
+  GridTiles[3, 10].y = "Y"
+  
+  GridTiles[4, 10].x = "H"
+  GridTiles[4, 10].y = "Z"  
   
   return, GridTiles
 END
@@ -91,5 +230,22 @@ PRO SELECT_NM_TILES, bl_y, tl_y, bl_x, br_x
       print, CONVERT_GRIDREF_TO_TILE_REF(STRCOMPRESS(STRING(x_intervals[j])), STRCOMPRESS(STRING(y_intervals[i])))
     END
   END
-    
+END
+
+PRO IMAGE_TO_NM_TILES
+  ; Let the user select the file
+  ENVI_SELECT, fid=fid
+  
+  ; Find out how many lines and samples the file has
+  ENVI_FILE_QUERY, fid, ns=ns, nl=nl
+  
+  ; Convert all four corners of the image to map co-ordinates
+  ENVI_CONVERT_FILE_COORDINATES, fid, /TO_MAP, [0, ns, 0, nl], [0, 0, nl, ns], xmap, ymap
+  
+  bl_y = STRCOMPRESS(STRING(ymap[2]))
+  tl_y = STRCOMPRESS(STRING(ymap[0]))
+  bl_x = STRCOMPRESS(STRING(xmap[2]))
+  br_x = STRCOMPRESS(STRING(xmap[3]))
+  
+  SELECT_NM_TILES, bl_y, tl_y, bl_x, br_x
 END
