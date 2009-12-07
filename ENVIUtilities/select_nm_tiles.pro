@@ -214,22 +214,27 @@ FUNCTION CONVERT_GRIDREF_TO_TILE_REF, x, y
 END
 
 ; Variables need to be input as strings in order bottom, top, left, right
-PRO SELECT_NM_TILES, bl_y, tl_y, bl_x, br_x
+FUNCTION SELECT_NM_TILES, bl_y, tl_y, bl_x, br_x
   bottom = long(bl_y)
   top = long(tl_y)
   
   left = long(bl_x)
   right = long(br_x)
  
+  selected_tiles = strarr(1000)
  
   y_intervals = EVERY_GRID_BETWEEN(bottom, top)
   x_intervals = EVERY_GRID_BETWEEN(left, right)
   
+  k = 0
   FOR i = 0, N_ELEMENTS(y_intervals) - 1 DO BEGIN
     FOR j = 0, N_ELEMENTS(x_intervals) - 1 DO BEGIN
-      print, CONVERT_GRIDREF_TO_TILE_REF(STRCOMPRESS(STRING(x_intervals[j])), STRCOMPRESS(STRING(y_intervals[i])))
+      selected_tiles[k] = CONVERT_GRIDREF_TO_TILE_REF(STRCOMPRESS(STRING(x_intervals[j])), STRCOMPRESS(STRING(y_intervals[i])))
+      k = k + 1
     END
   END
+  
+  return, selected_tiles[WHERE(selected_tiles)]
 END
 
 PRO IMAGE_TO_NM_TILES
@@ -242,10 +247,15 @@ PRO IMAGE_TO_NM_TILES
   ; Convert all four corners of the image to map co-ordinates
   ENVI_CONVERT_FILE_COORDINATES, fid, /TO_MAP, [0, ns, 0, nl], [0, 0, nl, ns], xmap, ymap
   
+  ; Convert the map co-ords to strings
   bl_y = STRCOMPRESS(STRING(ymap[2]))
   tl_y = STRCOMPRESS(STRING(ymap[0]))
   bl_x = STRCOMPRESS(STRING(xmap[2]))
   br_x = STRCOMPRESS(STRING(xmap[3]))
   
-  SELECT_NM_TILES, bl_y, tl_y, bl_x, br_x
+  ; Get the tiles that are needed
+  selected_tiles = SELECT_NM_TILES(bl_y, tl_y, bl_x, br_x)
+  
+  ; Display the result to the user
+  result = DIALOG_MESSAGE(["The required NextMAP tiles are:", selected_tiles[sort(selected_tiles)]], /information, title="NextMAP tiles")
 END
