@@ -195,7 +195,7 @@ FUNCTION EVERY_GRID_BETWEEN, bottom, top
 END
 
 FUNCTION GET_LETTERS_FROM_GRIDREF, x, y
-  x_First = STRMID(x, 2, 1)
+  x_First = STRMID(x, 1, 1)
   y_First = STRMID(y, 1, 1)
   
   GridTiles = INIT_GRIDTILES_ARRAY()
