@@ -237,6 +237,39 @@ FUNCTION SELECT_NM_TILES, bl_y, tl_y, bl_x, br_x
   return, selected_tiles[WHERE(selected_tiles)]
 END
 
+PRO GUI_LEN_WIDTH_TO_NM_TILES
+  tlb = WIDGET_AUTO_BASE(title="NextMap Tile Selection")
+  bl_x = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Bottom Left X", uvalue="bl_x")
+  bl_y = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Bottom Left Y", uvalue="bl_y")
+  tl_y = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="X Length (metres)", uvalue="x_len")
+  br_x = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Y Length (metres)", uvalue="y_len")
+  
+  result = AUTO_WID_MNG(tlb)
+  
+  
+  ; Get the tiles that are needed
+  selected_tiles = SELECT_NM_TILES(result.bl_y, result.bl_y + result.y_len, result.bl_x, result.bl_x + result.x_len)
+  
+  ; Display the result to the user
+  dlg_result = DIALOG_MESSAGE(["The required NextMAP tiles are:", selected_tiles[sort(selected_tiles)]], /information, title="NextMAP tiles")
+END
+
+PRO GUI_TO_NM_TILES
+  tlb = WIDGET_AUTO_BASE(title="NextMap Tile Selection")
+  bl_x = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Bottom Left X", uvalue="bl_x")
+  bl_y = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Bottom Left Y", uvalue="bl_y")
+  tl_y = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Top Left Y", uvalue="tl_y")
+  br_x = WIDGET_PARAM(tlb, /auto_manage, dt=3, prompt="Bottom Right X", uvalue="br_x")
+  
+  result = AUTO_WID_MNG(tlb)
+  
+  ; Get the tiles that are needed
+  selected_tiles = SELECT_NM_TILES(result.bl_y, result.tl_y, result.bl_x, result.br_x)
+  
+  ; Display the result to the user
+  dlg_result = DIALOG_MESSAGE(["The required NextMAP tiles are:", selected_tiles[sort(selected_tiles)]], /information, title="NextMAP tiles")
+END
+
 PRO IMAGE_TO_NM_TILES
   ; Let the user select the file
   ENVI_SELECT, fid=fid
@@ -258,4 +291,6 @@ PRO IMAGE_TO_NM_TILES
   
   ; Display the result to the user
   result = DIALOG_MESSAGE(["The required NextMAP tiles are:", selected_tiles[sort(selected_tiles)]], /information, title="NextMAP tiles")
+  
+  print, selected_tiles[sort(selected_tiles)]
 END
